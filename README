@@ -1,0 +1,45 @@
+Sections {
+   2016 {
+      Debits {
+         Pret appartement OR Pret
+         Electricite OR Elec
+         Arnona
+         Assurances {
+            Meuhedet
+            Maison
+            Sante
+         }
+         Daniel {
+            Linge
+            Resto
+            Retrait
+         }
+      }
+      Savings {
+         Epargne courant AS SV1
+         Epargne complementaire AS SV2
+      }
+      Credits {
+         Salaire Daniel
+         Salaire Cindy
+         Reste mois precedent
+         Extra
+      }
+   }
+}
+
+History file (History_2016_01.txt):
+
+Daniel.max=1000
+Daniel.expected=1000
+Cindy.max=3000
+Arnona.expected=838
+SV1 10000
+SV2 14000
+
+Electricite 314.27
+Arnona 800
+Courses 270
+Vaad 250
+Test voiture (SV1-) 200
+Epargne (SV1+) 1000
