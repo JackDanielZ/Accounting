@@ -1,6 +1,6 @@
 set(CMAKE_BUILD_TYPE Debug)
 
-LIST(APPEND SOURCES accounting.c history_parser.c section_parser.c common.c)
+LIST(APPEND SOURCES accounting.c history_parser.c desc_parser.c common.c)
 
 link_directories (${PC_LIBELEMENTARY_LIBRARY_DIRS})
 

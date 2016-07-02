@@ -5,6 +5,21 @@
 
 typedef struct
 {
+   Eina_Stringshare *name;
+   Eina_List *nicknames; /* List of Eina_Stringshare */
+   Eina_List *subitems;
+} Item_Desc;
+
+typedef struct
+{
+   Eina_List *debits;
+   Eina_List *credits;
+   Eina_List *savings;
+   int year;
+} Year_Desc;
+
+typedef struct
+{
    const char *buffer;
    const char *current;
    unsigned int line_no;
@@ -28,6 +43,8 @@ void error_print(Lexer *l, const char *error_str);
    error_print(l, s); \
    return NULL; \
 }
+
+Year_Desc *desc_parse(const char *buffer);
 
 #endif
 
