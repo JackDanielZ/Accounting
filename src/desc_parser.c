@@ -11,8 +11,20 @@ _item_parse(Lexer *l)
    char *line = next_word(l, " ", EINA_TRUE);
    if (line)
      {
+        char *nick;
+        Eina_Stringshare *shr;
         idesc = calloc(1, sizeof(*idesc));
-        idesc->name = eina_stringshare_add(line); /* FIXME: have to support OR */
+        while ((nick = strstr(line, " OR ")))
+          {
+             *nick = '\0';
+             shr = eina_stringshare_add(line);
+             if (!idesc->name) idesc->name = shr;
+             else idesc->nicknames = eina_list_append(idesc->nicknames, shr);
+             line = nick + 4;
+          }
+        shr = eina_stringshare_add(line);
+        if (!idesc->name) idesc->name = shr;
+        else idesc->nicknames = eina_list_append(idesc->nicknames, shr);
         idesc->subitems = _items_parse(l);
      }
    return idesc;
