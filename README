@@ -1,9 +1,9 @@
 2016 {
    Debits {
-      Pret appartement OR Pret
-      Electricite OR Elec
+      Pret appartement @or Pret
+      Electricite @or Elec
       Arnona
-      Assurances {
+      Assurances @or Assu {
          Meuhedet
          Maison
          Sante
@@ -12,11 +12,13 @@
          Linge
          Resto
          Retrait
+         Autres @other
       }
+      Autres @other
    }
    Savings {
-      Epargne courant OR SV1
-      Epargne complementaire OR SV2
+      Epargne courant @or SV1
+      Epargne complementaire @or SV2
    }
    Credits {
       Salaire Daniel
@@ -39,5 +41,9 @@ Electricite 314.27
 Arnona 800
 Courses 270
 Vaad 250
-Test voiture (SV1-) 200
-Epargne (SV1+) 1000
+Test voiture @SV1+ 200
+Armoire @SV1- 1000
+Linge @Daniel 30.98
+Maison @Assu 50
+Meuhedet 400
+Aliexpress @Daniel 20

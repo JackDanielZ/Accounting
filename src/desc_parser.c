@@ -8,24 +8,31 @@ static Item_Desc *
 _item_parse(Lexer *l)
 {
    Item_Desc *idesc = NULL;
-   char *line = next_word(l, " ", EINA_TRUE);
-   if (line)
+   char *elt = next_word(l, " ", EINA_TRUE);
+   Eina_Bool end = !elt;
+   while (!end)
      {
-        char *nick;
-        Eina_Stringshare *shr;
-        idesc = calloc(1, sizeof(*idesc));
-        while ((nick = strstr(line, " OR ")))
+        if (!idesc) idesc = calloc(1, sizeof(*idesc));
+        if (elt)
           {
-             *nick = '\0';
-             shr = eina_stringshare_add(line);
+             Eina_Stringshare *shr = eina_stringshare_add(elt);
              if (!idesc->name) idesc->name = shr;
              else idesc->nicknames = eina_list_append(idesc->nicknames, shr);
-             line = nick + 4;
           }
-        shr = eina_stringshare_add(line);
-        if (!idesc->name) idesc->name = shr;
-        else idesc->nicknames = eina_list_append(idesc->nicknames, shr);
-        idesc->subitems = _items_parse(l);
+        if (is_next_token(l, "@or"))
+          {
+             elt = next_word(l, " ", EINA_TRUE);
+          }
+        else if (is_next_token(l, "@other"))
+          {
+             idesc->as_other = EINA_TRUE;
+             elt = NULL;
+          }
+        else
+          {
+             idesc->subitems = _items_parse(l);
+             end = EINA_TRUE;
+          }
      }
    return idesc;
 }
