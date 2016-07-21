@@ -86,6 +86,39 @@ next_number(Lexer *l)
    return atoi(n_str);
 }
 
+char *
+chunk_get(Lexer *l, Eina_Bool include, char token, ...)
+{
+   va_list list;
+   ws_skip(l);
+   va_start(list, token);
+   const char *begin = l->current;
+   char *min_ptoken = NULL, min_token = '\0';
+   min_ptoken = strchr(l->current, token);
+   do
+     {
+        token = va_arg(list, int);
+        char *ptr = strchr(l->current, token);
+        if (!min_ptoken || min_ptoken > ptr) min_ptoken = ptr;
+     }
+   while (token);
+   if (min_ptoken)
+     {
+        l->current = min_ptoken + !!include ? 1 : 0;
+        if (min_token == '\n')
+          {
+             l->offset = 0;
+             l->line_no++;
+          }
+     }
+   if (begin == l->current) return NULL;
+   int size = l->current - begin;
+   char *chunk = malloc(size + 1);
+   memcpy(chunk, begin, size);
+   chunk[size] = '\0';
+   return chunk;
+}
+
 void
 error_print(Lexer *l, const char *error_str)
 {

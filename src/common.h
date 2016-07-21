@@ -37,6 +37,10 @@ char *next_word(Lexer *l, const char *special, Eina_Bool special_allowed);
 
 int next_number(Lexer *l);
 
+char *chunk_get(Lexer *l, Eina_Bool include, char token, ...);
+
+char *line_get(Lexer *l);
+
 void error_print(Lexer *l, const char *error_str);
 
 #define ERROR_PRINT(l, s) \
