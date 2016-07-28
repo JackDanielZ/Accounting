@@ -1,0 +1,21 @@
+@Daniel.max 1000
+@Daniel.expected 1000
+@Cindy.max 3000
+@Arnona.expected 838
+
+@SV1.init 10000
+@SV2.init 14000
+Reste mois precedent 1400
+
+Electricite 314.27
+Arnona 800
+( Courses 270 & Linge @Daniel 50 ) 320
+Vaad 250
+Test voiture @SV1+ 200
+Armoire @SV1- 1000
+Linge @Daniel 30.98
+Maison @Assu 50
+Assu 40
+Meuhedet @Assu 400
+Courses 30
+Aliexpress @Daniel 20

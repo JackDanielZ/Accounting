@@ -1,0 +1,27 @@
+2016 {
+   Debits {
+      Pret appartement @or Pret
+      Electricite @or Elec
+      Arnona
+      Assurances @or Assu
+      Daniel {
+         Linge
+         Resto
+         Retrait
+         Autres @other
+      }
+      Cindy
+      Courses
+      Autres @other
+   }
+   Savings {
+      Epargne courant @or SV1
+      Epargne complementaire @or SV2
+   }
+   Credits {
+      Salaire Daniel
+      Salaire Cindy
+      Reste mois precedent
+      Extra
+   }
+}

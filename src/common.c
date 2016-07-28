@@ -104,7 +104,7 @@ chunk_get(Lexer *l, Eina_Bool include, char token, ...)
    while (token);
    if (min_ptoken)
      {
-        l->current = min_ptoken + !!include ? 1 : 0;
+        l->current = min_ptoken + (!!include ? 1 : 0);
         if (min_token == '\n')
           {
              l->offset = 0;
@@ -126,4 +126,14 @@ error_print(Lexer *l, const char *error_str)
          l->line_no + 1, l->offset + 1, error_str);
 }
 
+void
+trailing_remove(char *str)
+{
+   int len = strlen(str);
+   while (str[len - 1] == ' ')
+     {
+        str[len - 1] = '\0';
+        len--;
+     }
+}
 

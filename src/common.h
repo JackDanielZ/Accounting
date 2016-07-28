@@ -43,6 +43,8 @@ char *line_get(Lexer *l);
 
 void error_print(Lexer *l, const char *error_str);
 
+void trailing_remove(char *str);
+
 #define ERROR_PRINT(l, s) \
 { \
    error_print(l, s); \
