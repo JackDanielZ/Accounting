@@ -21,6 +21,26 @@ typedef struct
 
 typedef struct
 {
+   Eina_Stringshare *name; /* Only for other */
+   float v;
+   Eina_Bool is_minus : 1;
+} Month_Operation;
+
+typedef struct
+{
+   Item_Desc *desc;
+   Eina_List *ops;
+   float max;
+   float expected;
+} Month_Item;
+
+typedef struct
+{
+   Eina_List *items;
+} Month_History;
+
+typedef struct
+{
    const char *buffer;
    const char *current;
    unsigned int line_no;
@@ -52,6 +72,8 @@ void trailing_remove(char *str);
 }
 
 Year_Desc *desc_parse(const char *buffer);
+
+Month_History *history_parse(const char *buffer, Year_Desc *ydesc);
 
 #endif
 

@@ -15,7 +15,10 @@ _item_parse(Lexer *l)
         if (!idesc) idesc = calloc(1, sizeof(*idesc));
         if (elt)
           {
+             trailing_remove(elt);
+             eina_str_tolower(&elt);
              Eina_Stringshare *shr = eina_stringshare_add(elt);
+             free(elt);
              if (!idesc->name) idesc->name = shr;
              else idesc->nicknames = eina_list_append(idesc->nicknames, shr);
           }
