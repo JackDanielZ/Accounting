@@ -65,6 +65,8 @@ void error_print(Lexer *l, const char *error_str);
 
 void trailing_remove(char *str);
 
+void my_to_lower(char *ptr, int len);
+
 #define ERROR_PRINT(l, s) \
 { \
    error_print(l, s); \

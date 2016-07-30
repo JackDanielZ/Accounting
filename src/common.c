@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <ctype.h>
+
 void
 lexer_reset(Lexer *l)
 {
@@ -134,6 +136,17 @@ trailing_remove(char *str)
      {
         str[len - 1] = '\0';
         len--;
+     }
+}
+
+void
+my_to_lower(char *ptr, int len)
+{
+   int i;
+   if (len == -1) len = strlen(ptr);
+   for (i = 0; i < len; i++)
+     {
+        ptr[i] = tolower(ptr[i]);
      }
 }
 

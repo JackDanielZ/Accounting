@@ -16,11 +16,11 @@ _item_parse(Lexer *l)
         if (elt)
           {
              trailing_remove(elt);
+             if (!idesc->name) idesc->name = eina_stringshare_add(elt);
              eina_str_tolower(&elt);
              Eina_Stringshare *shr = eina_stringshare_add(elt);
              free(elt);
-             if (!idesc->name) idesc->name = shr;
-             else idesc->nicknames = eina_list_append(idesc->nicknames, shr);
+             idesc->nicknames = eina_list_append(idesc->nicknames, shr);
           }
         if (is_next_token(l, "@or"))
           {

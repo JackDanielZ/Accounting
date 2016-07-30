@@ -24,7 +24,6 @@ _item_desc_find_rec(Item_Desc *cur_desc, Eina_Stringshare *categ, int depth)
    Eina_Stringshare *nick;
    Item_Desc *sub_desc;
    if (!cur_desc) return NULL;
-   if (cur_desc->name == categ) return cur_desc;
    EINA_LIST_FOREACH(cur_desc->nicknames, itr, nick)
      {
         if (nick == categ) return cur_desc;
@@ -87,7 +86,6 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
     */
    Month_Item *parent_mitem = NULL;
    Eina_Bool is_minus = EINA_FALSE;
-   eina_str_tolower(&chunk);
    trailing_remove(chunk);
    float sum = -1.0;
    char *ptr = strrchr(chunk, ' '); /* Look for sum */
@@ -106,6 +104,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
           {
              end_categ++;
           }
+        my_to_lower(ptr + 1, end_categ - (ptr + 1));
         Eina_Stringshare *category = eina_stringshare_add_length(ptr + 1, end_categ - (ptr + 1));
         Item_Desc *categ_desc = _item_desc_find(ydesc, NULL, category, -1);
         eina_stringshare_del(category);
@@ -148,8 +147,13 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
         else *ptr = '\0';
      }
    trailing_remove(chunk);
-   Eina_Stringshare *shr = eina_stringshare_add(chunk);
-   Item_Desc *idesc = _item_desc_find(ydesc, parent_mitem ? parent_mitem->desc : NULL, shr, 1);
+   char *lower_chunk = strdup(chunk);
+   my_to_lower(lower_chunk, -1);
+   Eina_Stringshare *chunk_shr = eina_stringshare_add(chunk);
+   Eina_Stringshare *lchunk_shr = eina_stringshare_add(lower_chunk);
+   free(lower_chunk);
+   Item_Desc *idesc = _item_desc_find(ydesc, parent_mitem ? parent_mitem->desc : NULL, lchunk_shr, 1);
+   eina_stringshare_del(lchunk_shr);
    if (!idesc)
      {
         /* Is there an item for others */
@@ -166,11 +170,11 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
      {
         Month_Operation *op = calloc(1, sizeof(*op));
         op->v = sum;
-        if (idesc->name != shr) op->name = eina_stringshare_ref(shr);
+        if (idesc->name != chunk_shr) op->name = eina_stringshare_ref(chunk_shr);
         op->is_minus = is_minus;
         item->ops = eina_list_append(item->ops, op);
      }
-   eina_stringshare_del(shr);
+   eina_stringshare_del(chunk_shr);
    return !!item;
 }
 
