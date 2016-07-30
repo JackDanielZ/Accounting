@@ -187,46 +187,33 @@ history_parse(const char *buffer, Year_Desc *ydesc)
     * else extract chunk until \0 or \n
     * for each chunk
     */
-   Eina_Bool success = EINA_FALSE, multi;
+   Eina_Bool success = EINA_FALSE;
    Lexer l;
    l.buffer = buffer;
    lexer_reset(&l);
 
    Month_History *hist = calloc(1, sizeof(*hist));
 
-   while (1)
+   do
      {
-        multi = is_next_token(&l, "(");
-        if (multi)
+        char *chunk = chunk_get(&l, EINA_FALSE, '\n', '&', '=', '\0');
+        if (chunk)
           {
-             do
-               {
-                  char *chunk = chunk_get(&l, EINA_FALSE, '&', ')', '\0');
-                  if (chunk)
-                    {
-                       // FIXME error if (not)
-                       _chunk_handle(chunk, ydesc, hist);
-                    }
-                  else goto end;
-               }
-             while (is_next_token(&l, "&"));
-             if (is_next_token(&l, ")"))
-               {
-                  next_number(&l);
-                  // FIXME: consume number
-               }
+             // FIXME error if (not)
+             _chunk_handle(chunk, ydesc, hist);
+          }
+        else goto end;
+        if (is_next_token(&l, "="))
+          {
+             next_number(&l);
           }
         else
           {
-             char *chunk = chunk_get(&l, EINA_FALSE, '\n', '\0');
-             if (chunk)
-               {
-                  // FIXME error if (not)
-                  _chunk_handle(chunk, ydesc, hist);
-               }
-             else goto end;
+             is_next_token(&l, "\n");
+             is_next_token(&l, "&");
           }
      }
+   while (1);
 
 end:
    success = EINA_TRUE;

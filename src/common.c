@@ -101,7 +101,7 @@ chunk_get(Lexer *l, Eina_Bool include, char token, ...)
      {
         token = va_arg(list, int);
         char *ptr = strchr(l->current, token);
-        if (!min_ptoken || min_ptoken > ptr) min_ptoken = ptr;
+        if (ptr && (!min_ptoken || min_ptoken > ptr)) min_ptoken = ptr;
      }
    while (token);
    if (min_ptoken)
