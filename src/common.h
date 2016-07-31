@@ -16,6 +16,7 @@ typedef struct
    Eina_List *debits;
    Eina_List *credits;
    Eina_List *savings;
+   Eina_List *months;
    int year;
 } Year_Desc;
 
@@ -36,6 +37,7 @@ typedef struct
 
 typedef struct
 {
+   int month;
    Eina_List *items;
 } Month_History;
 
@@ -75,7 +77,7 @@ void my_to_lower(char *ptr, int len);
 
 Year_Desc *desc_parse(const char *buffer);
 
-Month_History *history_parse(const char *buffer, Year_Desc *ydesc);
+Eina_Bool history_parse(const char *buffer, int month, Year_Desc *ydesc);
 
 #endif
 

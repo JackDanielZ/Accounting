@@ -178,8 +178,8 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
    return !!item;
 }
 
-Month_History *
-history_parse(const char *buffer, Year_Desc *ydesc)
+Eina_Bool
+history_parse(const char *buffer, int month, Year_Desc *ydesc)
 {
    /*
     * if token == (
@@ -193,6 +193,7 @@ history_parse(const char *buffer, Year_Desc *ydesc)
    lexer_reset(&l);
 
    Month_History *hist = calloc(1, sizeof(*hist));
+   hist->month = month;
 
    do
      {
@@ -222,8 +223,9 @@ error:
      {
         free(hist);
         // FIXME intern frees
-        return NULL;
+        return EINA_FALSE;
      }
-   return hist;
+   ydesc->months = eina_list_append(ydesc->months, hist);
+   return EINA_TRUE;
 }
 
