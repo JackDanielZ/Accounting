@@ -2,6 +2,19 @@
 
 #include "common.h"
 
+static Eina_Bool
+_is_desc_item_named(Item_Desc *idesc, Eina_Stringshare *name_shr)
+{
+   Eina_List *itr;
+   Eina_Stringshare *nick;
+   if (!idesc) return EINA_FALSE;
+   EINA_LIST_FOREACH(idesc->nicknames, itr, nick)
+     {
+        if (nick == name_shr) return EINA_TRUE;
+     }
+   return EINA_FALSE;
+}
+
 static Month_Item *
 _month_item_find(Month_History *hist, Item_Desc *idesc)
 {
@@ -85,6 +98,8 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
     * stringshare destination and operation and look into items names
     */
    Month_Item *parent_mitem = NULL;
+   Eina_Stringshare *chunk_shr = NULL;
+   Eina_Stringshare *lchunk_shr = NULL;
    Eina_Bool is_minus = EINA_FALSE;
    trailing_remove(chunk);
    float sum = -1.0;
@@ -149,11 +164,10 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
    trailing_remove(chunk);
    char *lower_chunk = strdup(chunk);
    my_to_lower(lower_chunk, -1);
-   Eina_Stringshare *chunk_shr = eina_stringshare_add(chunk);
-   Eina_Stringshare *lchunk_shr = eina_stringshare_add(lower_chunk);
+   chunk_shr = eina_stringshare_add(chunk);
+   lchunk_shr = eina_stringshare_add(lower_chunk);
    free(lower_chunk);
    Item_Desc *idesc = _item_desc_find(ydesc, parent_mitem ? parent_mitem->desc : NULL, lchunk_shr, 1);
-   eina_stringshare_del(lchunk_shr);
    if (!idesc)
      {
         /* Is there an item for others */
@@ -170,11 +184,13 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
      {
         Month_Operation *op = calloc(1, sizeof(*op));
         op->v = sum;
-        if (idesc->name != chunk_shr) op->name = eina_stringshare_ref(chunk_shr);
+        if (!_is_desc_item_named(idesc, lchunk_shr))
+           op->name = eina_stringshare_ref(chunk_shr);
         op->is_minus = is_minus;
         item->ops = eina_list_append(item->ops, op);
      }
    eina_stringshare_del(chunk_shr);
+   eina_stringshare_del(lchunk_shr);
    return !!item;
 }
 
