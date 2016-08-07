@@ -122,8 +122,13 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
         my_to_lower(ptr + 1, end_categ - (ptr + 1));
         Eina_Stringshare *category = eina_stringshare_add_length(ptr + 1, end_categ - (ptr + 1));
         Item_Desc *categ_desc = _item_desc_find(ydesc, NULL, category, -1);
+        if (!categ_desc)
+          {
+             fprintf(stderr, "Category %s not found\n", category);
+             eina_stringshare_del(category);
+             return EINA_FALSE;
+          }
         eina_stringshare_del(category);
-        if (!categ_desc) return EINA_FALSE;
         parent_mitem = _month_item_find(hist, categ_desc);
         if (*end_categ == '.')
           {
@@ -216,8 +221,12 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
         char *chunk = chunk_get(&l, EINA_FALSE, '\n', '&', '=', '\0');
         if (chunk)
           {
-             // FIXME error if (not)
-             _chunk_handle(chunk, ydesc, hist);
+             if (!_chunk_handle(chunk, ydesc, hist))
+               {
+                  ERROR_PRINT(&l, "Chunk error");
+                  fprintf(stderr, "%s\n", chunk);
+                  return EINA_FALSE;
+               }
           }
         else goto end;
         if (is_next_token(&l, "="))
