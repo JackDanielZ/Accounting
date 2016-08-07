@@ -72,12 +72,12 @@ next_word(Lexer *l, const char *special, Eina_Bool special_allowed)
    return word;
 }
 
-int
+float
 next_number(Lexer *l)
 {
    ws_skip(l);
    const char *str = l->current;
-   while (*str && (*str >= '0' && *str <= '9')) str++;
+   while (*str && ((*str >= '0' && *str <= '9') || *str == '.')) str++;
    if (str == l->current) return -1;
    int size = str - l->current;
    char *n_str = alloca(size + 1);

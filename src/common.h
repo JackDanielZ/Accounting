@@ -57,7 +57,7 @@ Eina_Bool is_next_token(Lexer *l, const char *token);
 
 char *next_word(Lexer *l, const char *special, Eina_Bool special_allowed);
 
-int next_number(Lexer *l);
+float next_number(Lexer *l);
 
 char *chunk_get(Lexer *l, Eina_Bool include, char token, ...);
 
