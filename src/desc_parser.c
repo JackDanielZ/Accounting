@@ -31,6 +31,11 @@ _item_parse(Lexer *l)
              idesc->as_other = EINA_TRUE;
              elt = NULL;
           }
+        else if (is_next_token(l, "@trash"))
+          {
+             idesc->as_trash = EINA_TRUE;
+             elt = NULL;
+          }
         else
           {
              idesc->subitems = _items_parse(l);

@@ -9,6 +9,7 @@ typedef struct
    Eina_List *nicknames; /* List of Eina_Stringshare */
    Eina_List *subitems;
    Eina_Bool as_other : 1;
+   Eina_Bool as_trash : 1;
 } Item_Desc;
 
 typedef struct

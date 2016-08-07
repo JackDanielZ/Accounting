@@ -184,6 +184,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
         /* Unknown category*/
         return EINA_FALSE;
      }
+   if (idesc->as_trash) return EINA_TRUE;
    Month_Item *item = _month_item_find(hist, idesc);
    if (item)
      {
