@@ -60,7 +60,7 @@ _item_desc_print(Month_History *hist, Item_Desc *idesc, int nb_spaces)
    if (nb_ops != 1) printf("\n");
    EINA_LIST_FOREACH(mitem->ops, itr, op)
      {
-        item_sum += op->v;
+        item_sum += (op->v * (op->is_minus ? -1 : 1));
         printf("%*s  %.2f", nb_spaces, " ", op->v);
         if (op->name) printf(" (%s)", op->name);
         printf("\n");
