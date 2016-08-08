@@ -150,3 +150,18 @@ my_to_lower(char *ptr, int len)
      }
 }
 
+Month_Item *
+month_item_find(Month_History *hist, Item_Desc *idesc)
+{
+   Month_Item *item;
+   Eina_List *itr;
+   EINA_LIST_FOREACH(hist->items, itr, item)
+     {
+        if (item->desc == idesc) return item;
+     }
+   item = calloc(1, sizeof(*item));
+   item->desc = idesc;
+   hist->items = eina_list_append(hist->items, item);
+   return item;
+}
+

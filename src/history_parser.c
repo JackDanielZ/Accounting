@@ -15,21 +15,6 @@ _is_desc_item_named(Item_Desc *idesc, Eina_Stringshare *name_shr)
    return EINA_FALSE;
 }
 
-static Month_Item *
-_month_item_find(Month_History *hist, Item_Desc *idesc)
-{
-   Month_Item *item;
-   Eina_List *itr;
-   EINA_LIST_FOREACH(hist->items, itr, item)
-     {
-        if (item->desc == idesc) return item;
-     }
-   item = calloc(1, sizeof(*item));
-   item->desc = idesc;
-   hist->items = eina_list_append(hist->items, item);
-   return item;
-}
-
 static Item_Desc *
 _item_desc_find_rec(Item_Desc *cur_desc, Eina_Stringshare *categ, int depth)
 {
@@ -129,7 +114,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
              return EINA_FALSE;
           }
         eina_stringshare_del(category);
-        parent_mitem = _month_item_find(hist, categ_desc);
+        parent_mitem = month_item_find(hist, categ_desc);
         if (*end_categ == '.')
           {
              end_categ++;
@@ -172,7 +157,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
    chunk_shr = eina_stringshare_add(chunk);
    lchunk_shr = eina_stringshare_add(lower_chunk);
    free(lower_chunk);
-   Item_Desc *idesc = _item_desc_find(ydesc, parent_mitem ? parent_mitem->desc : NULL, lchunk_shr, 1);
+   Item_Desc *idesc = _item_desc_find(ydesc, parent_mitem ? parent_mitem->desc : NULL, lchunk_shr, -1);
    if (!idesc)
      {
         /* Is there an item for others */
@@ -185,7 +170,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
         return EINA_FALSE;
      }
    if (idesc->as_trash) return EINA_TRUE;
-   Month_Item *item = _month_item_find(hist, idesc);
+   Month_Item *item = month_item_find(hist, idesc);
    if (item)
      {
         Month_Operation *op = calloc(1, sizeof(*op));

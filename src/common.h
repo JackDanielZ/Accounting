@@ -70,6 +70,9 @@ void trailing_remove(char *str);
 
 void my_to_lower(char *ptr, int len);
 
+Month_Item *
+month_item_find(Month_History *hist, Item_Desc *idesc);
+
 #define ERROR_PRINT(l, s) \
 { \
    error_print(l, s); \
