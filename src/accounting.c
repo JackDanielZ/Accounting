@@ -3,6 +3,7 @@
 
 #include <Elementary.h>
 
+#include "ui.h"
 #include "common.h"
 
 #define ERR(fmt, ...) fprintf(stderr, fmt"\n", ## __VA_ARGS__)
@@ -73,6 +74,12 @@ _item_desc_print(Month_History *hist, Item_Desc *idesc, int nb_spaces)
    return item_sum;
 }
 
+static void
+_my_win_del(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
+{
+   elm_exit(); /* exit the program's main loop that runs in elm_run() */
+}
+
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
@@ -104,6 +111,15 @@ elm_main(int argc, char **argv)
           }
      }
 
+   Eo *win = elm_win_util_standard_add("Accounting", "Accounting");
+   evas_object_smart_callback_add(win, "delete,request", _my_win_del, NULL);
+
+   evas_object_resize(win, 800, 600);
+//   elm_config_scale_set(0.7);
+//   elm_object_scale_set
+
+   ui_year_create(ydesc, win);
+
    Eina_List *itr_m, *itr_i;
    EINA_LIST_FOREACH(ydesc->months, itr_m, hist)
      {
@@ -130,6 +146,10 @@ elm_main(int argc, char **argv)
           }
         printf("Total: %.2f\n", sum);
      }
+
+   evas_object_show(win);
+
+   elm_run();
 
    eina_shutdown();
    return 0;

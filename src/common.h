@@ -2,6 +2,7 @@
 #define _COMMON_H
 
 #include <Eina.h>
+#include <Eo.h>
 
 typedef struct
 {
@@ -14,11 +15,13 @@ typedef struct
 
 typedef struct
 {
+   int year;
    Eina_List *debits;
    Eina_List *credits;
    Eina_List *savings;
    Eina_List *months;
-   int year;
+
+   void *ui_data;
 } Year_Desc;
 
 typedef struct
