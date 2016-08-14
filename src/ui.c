@@ -14,37 +14,6 @@ static const char *_months[] =
    "November", "December"
 };
 
-#if 0
-static float
-_item_desc_display(History *hist, Item_Desc *idesc, Eo *table, int *row)
-{
-   Eina_List *itr;
-   Month_Item *mitem = month_item_find(hist, idesc);
-   Eo *bt;
-   int nb_ops = eina_list_count(mitem->ops);
-   Month_Operation *op;
-   float item_sum = 0.0;
-   bt = _button_create(table, mitem->desc->name);
-   elm_table_pack(table, bt, 0, row++, 1, 1);
-   if (mitem->max) printf("%*smax %.2f ", nb_spaces, " ", mitem->max);
-   if (mitem->expected) printf("%*sexpected %.2f ", nb_spaces, " ", mitem->expected);
-   if (nb_ops != 1) printf("\n");
-   EINA_LIST_FOREACH(mitem->ops, itr, op)
-     {
-        item_sum += (op->v * (op->is_minus ? -1 : 1));
-        printf("%*s  %.2f", nb_spaces, " ", op->v);
-        if (op->name) printf(" (%s)", op->name);
-        printf("\n");
-     }
-   EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
-     {
-        item_sum += _item_desc_print(hist, idesc, nb_spaces + 2);
-     }
-   printf("%*s  Total: %.2f\n", nb_spaces, " ", item_sum);
-   return item_sum;
-}
-#endif
-
 static void
 _expand(void *data EINA_UNUSED, Evas_Object *cont, void *event_info)
 {
@@ -160,7 +129,9 @@ _item_content_get(void *data, Evas_Object *gl, const char *part)
                }
              Eo *obj = elm_label_add(box);
              elm_label_ellipsis_set(obj, EINA_TRUE);
-             sprintf(buf, "%.2f", sum);
+             if (sum - (int)sum > 0.5) sum = (int)sum + 1;
+             else sum = (int)sum;
+             sprintf(buf, "%d", (int)sum);
              elm_object_text_set(obj, buf);
              evas_object_size_hint_min_set(obj, 70, 140);
              elm_box_pack_end(box, obj);
