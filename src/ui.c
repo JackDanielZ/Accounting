@@ -73,7 +73,7 @@ _group_content_get(void *data, Evas_Object *gl, const char *part)
                {
                   Eo *obj = elm_label_add(box);
                   elm_object_text_set(obj, _months[i]);
-                  evas_object_size_hint_min_set(obj, 70, 140);
+                  evas_object_size_hint_min_set(obj, 120, 140);
                   elm_box_pack_end(box, obj);
                   evas_object_show(obj);
                }
@@ -133,7 +133,7 @@ _item_content_get(void *data, Evas_Object *gl, const char *part)
              else sum = (int)sum;
              sprintf(buf, "%d", (int)sum);
              elm_object_text_set(obj, buf);
-             evas_object_size_hint_min_set(obj, 70, 140);
+             evas_object_size_hint_min_set(obj, 120, 140);
              elm_box_pack_end(box, obj);
              evas_object_show(obj);
           }

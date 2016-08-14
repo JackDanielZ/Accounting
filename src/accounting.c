@@ -113,10 +113,8 @@ elm_main(int argc, char **argv)
 
    Eo *win = elm_win_util_standard_add("Accounting", "Accounting");
    evas_object_smart_callback_add(win, "delete,request", _my_win_del, NULL);
-
-   evas_object_resize(win, 800, 600);
-//   elm_config_scale_set(0.7);
-//   elm_object_scale_set
+   evas_object_resize(win, 1200, 768);
+   elm_win_maximized_set(win, EINA_TRUE);
 
    ui_year_create(ydesc, win);
 
