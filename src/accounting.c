@@ -100,9 +100,9 @@ elm_main(int argc, char **argv)
    free(buffer);
 
    dir = dirname(argv[1]);
-   for (m = 1; m <= 12; m++)
+   for (m = 0; m < 12; m++)
      {
-        sprintf(history_file, "%s/History_%d_%.2d.txt", dir, ydesc->year, m);
+        sprintf(history_file, "%s/History_%d_%.2d.txt", dir, ydesc->year, m + 1);
         buffer = _file_get_as_string(history_file);
         if (buffer)
           {
