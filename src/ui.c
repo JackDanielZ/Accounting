@@ -6,6 +6,16 @@
 EOAPI void *eo_key_data_get(const Eo *obj, const char * key);
 EOAPI void eo_key_data_set(Eo *obj, const char * key, const void *data);
 
+Elm_Genlist_Item_Class *gitc = NULL, *itc = NULL;
+
+enum
+{
+   ITEM_MONTHS,
+   ITEM_DEBITS,
+   ITEM_CREDITS,
+   ITEM_SAVINGS
+};
+
 static const char *_months[] =
 {
    "January", "February", "March",
@@ -18,11 +28,12 @@ static void
 _expand(void *data EINA_UNUSED, Evas_Object *cont, void *event_info)
 {
    Elm_Object_Item *glit = event_info;
+   Eina_List *idesc_list = eo_key_data_get(glit, "idesc_list");
    Item_Desc *idesc = elm_object_item_data_get(glit);
-   const Elm_Genlist_Item_Class *itc = elm_genlist_item_item_class_get(glit);
-   Eina_List *itr;
-   EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
+   Eina_List *itr, *lst = idesc_list ? idesc_list : idesc->subitems;
+   EINA_LIST_FOREACH(lst, itr, idesc)
      {
+        if (idesc->as_trash) continue;
         elm_genlist_item_append(cont, itc, idesc, glit,
               idesc->subitems ? ELM_GENLIST_ITEM_TREE : ELM_GENLIST_ITEM_NONE,
               NULL, NULL);
@@ -53,8 +64,15 @@ _contract_req(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_
 static char *
 _group_text_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA_UNUSED)
 {
-   if (data) return strdup(data);
-   else return NULL;
+   int item_type = (uintptr_t)data;
+   switch(item_type)
+     {
+      case ITEM_MONTHS: return NULL;
+      case ITEM_DEBITS: return strdup("Debits");
+      case ITEM_CREDITS: return strdup("Credits");
+      case ITEM_SAVINGS: return strdup("Savings");
+     }
+   return NULL;
 }
 
 static Evas_Object *
@@ -64,10 +82,12 @@ _group_content_get(void *data, Evas_Object *gl, const char *part)
    if (!strcmp(part, "elm.swallow.end"))
      {
         int i;
+        int item_type = (uintptr_t)data;
+        //Year_Desc *ydesc = eo_key_data_get(gl, "ydesc");
         box = elm_box_add(gl);
         elm_box_homogeneous_set(box, EINA_TRUE);
         elm_box_horizontal_set(box, EINA_TRUE);
-        if (!data)
+        if (item_type == ITEM_MONTHS)
           {
              for (i = 0; i < 12; i++)
                {
@@ -144,10 +164,7 @@ _item_content_get(void *data, Evas_Object *gl, const char *part)
 Eo *
 ui_year_create(Year_Desc *ydesc, Eo *win)
 {
-   Elm_Genlist_Item_Class *gitc, *itc;
    Elm_Object_Item *git = NULL;
-   Eina_List *itr_i;
-   Item_Desc *idesc;
 
    Eo *cont = elm_genlist_add(win);
    eo_key_data_set(cont, "ydesc", ydesc);
@@ -173,17 +190,24 @@ ui_year_create(Year_Desc *ydesc, Eo *win)
    evas_object_smart_callback_add(cont, "expanded", _expand, NULL);
    evas_object_smart_callback_add(cont, "contracted", _contract, NULL);
 
-   elm_genlist_item_append(cont, gitc, NULL, NULL,
+   elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_MONTHS, NULL,
                                  ELM_GENLIST_ITEM_NONE, NULL, NULL);
-   git = elm_genlist_item_append(cont, gitc, "Debits", NULL,
+
+   git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_DEBITS, NULL,
                                  ELM_GENLIST_ITEM_TREE, NULL, NULL);
-   EINA_LIST_FOREACH(ydesc->debits, itr_i, idesc)
-     {
-        if (idesc->as_trash) continue;
-        elm_genlist_item_append(cont, itc, idesc, git,
-              idesc->subitems ? ELM_GENLIST_ITEM_TREE : ELM_GENLIST_ITEM_NONE,
-              NULL, NULL);
-     }
+   eo_key_data_set(git, "idesc_list", ydesc->debits);
+   elm_genlist_item_expanded_set(git, EINA_TRUE);
+
+   git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_SAVINGS, NULL,
+                                 ELM_GENLIST_ITEM_TREE, NULL, NULL);
+   eo_key_data_set(git, "idesc_list", ydesc->savings);
+   elm_genlist_item_expanded_set(git, EINA_TRUE);
+
+   git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_CREDITS, NULL,
+                                 ELM_GENLIST_ITEM_TREE, NULL, NULL);
+   eo_key_data_set(git, "idesc_list", ydesc->credits);
+   elm_genlist_item_expanded_set(git, EINA_TRUE);
+
    return cont;
 }
 
