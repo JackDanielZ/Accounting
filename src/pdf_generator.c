@@ -5,8 +5,10 @@
 static const char *header =
 "\\documentclass{article}\n"
 "\\usepackage{pdflscape}\n"
+"\\usepackage[table]{xcolor}\n"
 "\\begin{document}\n"
 "\\pagenumbering{gobble}\n"
+"\\rowcolors{2}{white}{yellow}\n"
 "\\begin{landscape}\n"
 "\\begin{table}[ht]\n"
 "\\centering\n"
