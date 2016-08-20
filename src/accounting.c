@@ -60,39 +60,6 @@ enum
    GEN_PDF
 };
 
-Eina_Bool
-_pdf_generate(Year_Desc *ydesc, const char *output)
-{
-   char cmd[128];
-   const char *tmp_file = "/tmp/accounting.tex";
-   FILE *fp = fopen(tmp_file, "w");
-
-   fprintf(fp,
-         "\\documentclass{article}\n"
-         "\\begin{document}\n"
-         "\\begin{table}[ht]\n"
-         "\\centering\n"
-         "\\begin{tabular}{c|ccccccc}\n"
-         "\\hline\n"
-         "& col1 & col2 & col3 & col4 & col5 & col6 & col7 \\\\\n"
-         "\\hline\n"
-         "row1& 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 \\\\\n"
-         "row2& 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 \\\\\n"
-         "row3& 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 \\\\\n"
-         "row4& 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 \\\\\n"
-         "row5& 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 \\\\\n"
-         "row6& 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 & 0.9 \\\\\n"
-         "\\hline\n"
-         "\\end{tabular}\n"
-         "\\end{table}\n"
-         "\\end{document}\n");
-   fclose(fp);
-
-   sprintf(cmd, "texi2pdf -q -c %s -o %s", tmp_file, output);
-   system(cmd);
-   return EINA_TRUE;
-}
-
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
@@ -161,7 +128,7 @@ elm_main(int argc, char **argv)
 
    if (gen_what == GEN_PDF)
      {
-        _pdf_generate(ydesc, "toto.tex");
+        pdf_generate(ydesc, "toto.tex");
         goto end;
      }
    Eo *win = elm_win_util_standard_add("Accounting", "Accounting");
