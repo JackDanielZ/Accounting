@@ -47,33 +47,6 @@ _file_get_as_string(const char *filename)
    return file_data;
 }
 
-static float
-_item_desc_print(Month_History *hist, Item_Desc *idesc, int nb_spaces)
-{
-   Eina_List *itr;
-   Month_Item *mitem = month_item_find(hist, idesc);
-   int nb_ops = eina_list_count(mitem->ops);
-   Month_Operation *op;
-   float item_sum = 0.0;
-   printf("%*sItem %s ", nb_spaces, " ", mitem->desc->name);
-   if (mitem->max) printf("%*smax %.2f ", nb_spaces, " ", mitem->max);
-   if (mitem->expected) printf("%*sexpected %.2f ", nb_spaces, " ", mitem->expected);
-   if (nb_ops != 1) printf("\n");
-   EINA_LIST_FOREACH(mitem->ops, itr, op)
-     {
-        item_sum += (op->v * (op->is_minus ? -1 : 1));
-        printf("%*s  %.2f", nb_spaces, " ", op->v);
-        if (op->name) printf(" (%s)", op->name);
-        printf("\n");
-     }
-   EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
-     {
-        item_sum += _item_desc_print(hist, idesc, nb_spaces + 2);
-     }
-   printf("%*s  Total: %.2f\n", nb_spaces, " ", item_sum);
-   return item_sum;
-}
-
 static void
 _my_win_del(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
 {
@@ -85,7 +58,6 @@ elm_main(int argc, char **argv)
 {
    char history_file[256];
    char *buffer, *dir;
-   Month_History *hist = NULL;
    int m;
    eina_init();
 
@@ -117,33 +89,6 @@ elm_main(int argc, char **argv)
    elm_win_maximized_set(win, EINA_TRUE);
 
    ui_year_create(ydesc, win);
-
-   Eina_List *itr_m, *itr_i;
-   EINA_LIST_FOREACH(ydesc->months, itr_m, hist)
-     {
-        Item_Desc *idesc;
-        float sum = 0;
-        printf("Debits: \n");
-        EINA_LIST_FOREACH(ydesc->debits, itr_i, idesc)
-          {
-             sum += _item_desc_print(hist, idesc, 2);
-          }
-        printf("Total: %.2f\n", sum);
-        sum = 0;
-        printf("Savings: \n");
-        EINA_LIST_FOREACH(ydesc->savings, itr_i, idesc)
-          {
-             sum += _item_desc_print(hist, idesc, 2);
-          }
-        printf("Total: %.2f\n", sum);
-        sum = 0;
-        printf("Credits: \n");
-        EINA_LIST_FOREACH(ydesc->credits, itr_i, idesc)
-          {
-             sum += _item_desc_print(hist, idesc, 2);
-          }
-        printf("Total: %.2f\n", sum);
-     }
 
    evas_object_show(win);
 
