@@ -76,6 +76,12 @@ void my_to_lower(char *ptr, int len);
 Month_Item *
 month_item_find(Month_History *hist, Item_Desc *idesc);
 
+Month_History *
+month_hist_get(Year_Desc *ydesc, int month);
+
+float
+idesc_sum_calc(Month_History *hist, Item_Desc *idesc);
+
 #define ERROR_PRINT(l, s) \
 { \
    error_print(l, s); \

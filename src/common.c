@@ -2,6 +2,14 @@
 
 #include <ctype.h>
 
+const char *_months[] =
+{
+   "January", "February", "March",
+   "April", "May", "June", "July",
+   "August", "September", "October",
+   "November", "December"
+};
+
 void
 lexer_reset(Lexer *l)
 {
@@ -164,5 +172,35 @@ month_item_find(Month_History *hist, Item_Desc *idesc)
    item->desc = idesc;
    hist->items = eina_list_append(hist->items, item);
    return item;
+}
+
+Month_History *
+month_hist_get(Year_Desc *ydesc, int month)
+{
+   Eina_List *itr;
+   Month_History *hist = NULL;
+   EINA_LIST_FOREACH(ydesc->months, itr, hist)
+     {
+        if (hist->month == month) return hist;
+     }
+   return hist;
+}
+
+float
+idesc_sum_calc(Month_History *hist, Item_Desc *idesc)
+{
+   Eina_List *itr;
+   float sum = 0;
+   Month_Item *mitem = month_item_find(hist, idesc);
+   Month_Operation *op;
+   EINA_LIST_FOREACH(mitem->ops, itr, op)
+     {
+        sum += (op->v * (op->is_minus ? -1 : 1));
+     }
+   EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
+     {
+        sum += idesc_sum_calc(hist, idesc);
+     }
+   return sum;
 }
 
