@@ -1,10 +1,9 @@
+#define EFL_BETA_API_SUPPORT
 #include <Elementary.h>
 #include <Eo.h>
+#include <Evas.h>
 
 #include "ui.h"
-
-EOAPI void *eo_key_data_get(const Eo *obj, const char * key);
-EOAPI void eo_key_data_set(Eo *obj, const char * key, const void *data);
 
 Elm_Genlist_Item_Class *gitc = NULL, *itc = NULL;
 
@@ -28,7 +27,7 @@ static void
 _expand(void *data EINA_UNUSED, Evas_Object *cont, void *event_info)
 {
    Elm_Object_Item *glit = event_info;
-   Eina_List *idesc_list = eo_key_data_get(glit, "idesc_list");
+   Eina_List *idesc_list = efl_key_data_get(glit, "idesc_list");
    Item_Desc *idesc = elm_object_item_data_get(glit);
    Eina_List *itr, *lst = idesc_list ? idesc_list : idesc->subitems;
    EINA_LIST_FOREACH(lst, itr, idesc)
@@ -113,7 +112,7 @@ _group_content_get(void *data, Evas_Object *gl, const char *part)
      {
         int i;
         int item_type = (uintptr_t)data;
-        Year_Desc *ydesc = eo_key_data_get(gl, "ydesc");
+        Year_Desc *ydesc = efl_key_data_get(gl, "ydesc");
         box = elm_box_add(gl);
         elm_box_homogeneous_set(box, EINA_TRUE);
         elm_box_horizontal_set(box, EINA_TRUE);
@@ -193,7 +192,7 @@ _item_content_get(void *data, Evas_Object *gl, const char *part)
    if (!strcmp(part, "elm.swallow.end"))
      {
         Item_Desc *idesc = data;
-        Year_Desc *ydesc = eo_key_data_get(gl, "ydesc");
+        Year_Desc *ydesc = efl_key_data_get(gl, "ydesc");
         int i;
         box = elm_box_add(gl);
         elm_box_horizontal_set(box, EINA_TRUE);
@@ -227,7 +226,7 @@ ui_year_create(Year_Desc *ydesc, Eo *win)
    Elm_Object_Item *git = NULL;
 
    Eo *cont = elm_genlist_add(win);
-   eo_key_data_set(cont, "ydesc", ydesc);
+   efl_key_data_set(cont, "ydesc", ydesc);
    evas_object_size_hint_weight_set(cont, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(cont, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_win_resize_object_add(win, cont);
@@ -255,17 +254,17 @@ ui_year_create(Year_Desc *ydesc, Eo *win)
 
    git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_DEBITS, NULL,
                                  ELM_GENLIST_ITEM_TREE, NULL, NULL);
-   eo_key_data_set(git, "idesc_list", ydesc->debits);
+   efl_key_data_set(git, "idesc_list", ydesc->debits);
    elm_genlist_item_expanded_set(git, EINA_TRUE);
 
    git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_SAVINGS, NULL,
                                  ELM_GENLIST_ITEM_TREE, NULL, NULL);
-   eo_key_data_set(git, "idesc_list", ydesc->savings);
+   efl_key_data_set(git, "idesc_list", ydesc->savings);
    elm_genlist_item_expanded_set(git, EINA_TRUE);
 
    git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_CREDITS, NULL,
                                  ELM_GENLIST_ITEM_TREE, NULL, NULL);
-   eo_key_data_set(git, "idesc_list", ydesc->credits);
+   efl_key_data_set(git, "idesc_list", ydesc->credits);
    elm_genlist_item_expanded_set(git, EINA_TRUE);
 
    return cont;
