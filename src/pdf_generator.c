@@ -6,6 +6,7 @@ static const char *header =
 "\\documentclass{article}\n"
 "\\usepackage{pdflscape}\n"
 "\\begin{document}\n"
+"\\pagenumbering{gobble}\n"
 "\\begin{landscape}\n"
 "\\begin{table}[ht]\n"
 "\\centering\n"
