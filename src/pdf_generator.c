@@ -25,7 +25,7 @@ static const char *end =
 
 extern const char *_months[];
 
-Eina_Bool
+int
 pdf_generate(Year_Desc *ydesc, const char *output)
 {
    char cmd[128];
@@ -59,7 +59,6 @@ pdf_generate(Year_Desc *ydesc, const char *output)
    fclose(fp);
 
    sprintf(cmd, "texi2pdf -q -c %s -o %s", tmp_file, output);
-   system(cmd);
-   return EINA_TRUE;
+   return !!system(cmd);
 }
 

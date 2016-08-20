@@ -65,7 +65,7 @@ elm_main(int argc, char **argv)
 {
    char history_file[256];
    char *buffer, *dir;
-   int m, opt, gen_what = GEN_UI;
+   int m, opt, gen_what = GEN_UI, ret = 0;
    Eina_Bool help = EINA_FALSE;
    eina_init();
 
@@ -128,7 +128,7 @@ elm_main(int argc, char **argv)
 
    if (gen_what == GEN_PDF)
      {
-        pdf_generate(ydesc, "toto.tex");
+        ret = pdf_generate(ydesc, "toto.tex");
         goto end;
      }
    Eo *win = elm_win_util_standard_add("Accounting", "Accounting");
@@ -144,6 +144,6 @@ elm_main(int argc, char **argv)
 
 end:
    eina_shutdown();
-   return 0;
+   return ret;
 }
 ELM_MAIN()
