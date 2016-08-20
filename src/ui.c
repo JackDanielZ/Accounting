@@ -172,6 +172,20 @@ _item_text_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA_U
    return strdup(idesc->name);
 }
 
+#if 0
+static void
+_ops_popup_show(void *data, Evas *e, Evas_Object *obj, void *event_info)
+{
+   Eo *bb = elm_bubble_add(obj);
+   elm_object_text_set(bb, "Message 2");
+   elm_object_part_text_set(bb, "info", "10:32 4/11/2008");
+   elm_bubble_pos_set(bb, ELM_BUBBLE_POS_BOTTOM_RIGHT);
+   evas_object_size_hint_weight_set(bb, EVAS_HINT_EXPAND, 0.0);
+   evas_object_size_hint_align_set(bb, EVAS_HINT_FILL, EVAS_HINT_FILL);
+   evas_object_show(bb);
+}
+#endif
+
 static Evas_Object *
 _item_content_get(void *data, Evas_Object *gl, const char *part)
 {
@@ -187,17 +201,21 @@ _item_content_get(void *data, Evas_Object *gl, const char *part)
           {
              char buf[16];
              Month_History *hist = _month_hist_get(ydesc, i);
+             //Month_Item *mitem = month_item_find(hist, idesc);
              float sum = 0.0;
              if (hist) sum = _idesc_sum_calc(hist, idesc);
-             Eo *obj = elm_label_add(box);
-             elm_label_ellipsis_set(obj, EINA_TRUE);
              if (sum - (int)sum > 0.5) sum = (int)sum + 1;
              else sum = (int)sum;
+
+             Eo *obj = elm_label_add(box);
+             //elm_label_ellipsis_set(obj, EINA_TRUE);
              sprintf(buf, "%d", (int)sum);
              elm_object_text_set(obj, buf);
              evas_object_size_hint_min_set(obj, 120, 140);
+             elm_object_tooltip_text_set(obj, "truc");
              elm_box_pack_end(box, obj);
              evas_object_show(obj);
+
           }
      }
    return box;

@@ -155,6 +155,7 @@ month_item_find(Month_History *hist, Item_Desc *idesc)
 {
    Month_Item *item;
    Eina_List *itr;
+   if (!hist) return NULL;
    EINA_LIST_FOREACH(hist->items, itr, item)
      {
         if (item->desc == idesc) return item;
