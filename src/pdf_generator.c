@@ -4,22 +4,23 @@
 
 static const char *header =
 "\\documentclass{article}\n"
-"\\usepackage{pdflscape}\n"
+"\\usepackage{adjustbox}\n"
 "\\usepackage[table]{xcolor}\n"
+"\\usepackage{geometry}\n"
+"\\geometry{a4paper, landscape, margin=0in}\n"
 "\\begin{document}\n"
 "\\pagenumbering{gobble}\n"
 "\\rowcolors{2}{white}{yellow}\n"
-"\\begin{landscape}\n"
 "\\begin{table}[ht]\n"
 "\\centering\n"
-"\\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|}\n"
+"\\noindent\\adjustbox{width=1\\textwidth}{%\n"
+"\\begin{tabular}{|p{5cm}|c|c|c|c|c|c|c|c|c|c|c|c|}\n"
 "\\hline\n"
 ;
 
 static const char *end =
-"\\end{tabular}\n"
+"\\end{tabular}}\n"
 "\\end{table}\n"
-"\\end{landscape}\n"
 "\\end{document}\n"
 ;
 
