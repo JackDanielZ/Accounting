@@ -93,5 +93,7 @@ Eina_Bool history_parse(const char *buffer, int month, Year_Desc *ydesc);
 
 int pdf_generate(Year_Desc *ydesc, const char *output);
 
+int html_generate(Year_Desc *ydesc, const char *output);
+
 #endif
 

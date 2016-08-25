@@ -57,7 +57,8 @@ _my_win_del(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_in
 enum
 {
    GEN_UI,
-   GEN_PDF
+   GEN_PDF,
+   GEN_HTML
 };
 
 EAPI_MAIN int
@@ -72,6 +73,7 @@ elm_main(int argc, char **argv)
    struct option opts[] = {
       { "help",    no_argument,       NULL,       'h'        },
       { "pdf",     no_argument,       &gen_what,  GEN_PDF    },
+      { "html",    no_argument,       &gen_what,  GEN_HTML   },
 //      { "output",  required_argument, NULL,       'o'        },
       { NULL, 0, NULL, 0 }
    };
@@ -129,6 +131,11 @@ elm_main(int argc, char **argv)
    if (gen_what == GEN_PDF)
      {
         ret = pdf_generate(ydesc, "toto.tex");
+        goto end;
+     }
+   if (gen_what == GEN_HTML)
+     {
+        ret = html_generate(ydesc, "toto.html");
         goto end;
      }
    Eo *win = elm_win_util_standard_add("Accounting", "Accounting");
