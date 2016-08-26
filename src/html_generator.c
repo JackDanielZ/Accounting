@@ -2,22 +2,6 @@
 
 #include "common.h"
 
-static const char *header =
-"<!DOCTYPE html>\n"
-"<html>\n"
-"<head>\n"
-"<title>Report</title>\n"
-"</head>\n"
-"<body>\n"
-"<table border=\"1\" style=\"width:100%\">"
-;
-
-static const char *end =
-"</table>\n"
-"</body>\n"
-"</html>\n"
-;
-
 extern const char *_months[];
 
 static void
@@ -51,7 +35,9 @@ html_generate(Year_Desc *ydesc, const char *output)
    Item_Desc *idesc;
    int m;
 
-   fprintf(fp, header);
+   char *buffer = file_get_as_string(PACKAGE_DATA_DIR"header_html");
+   fprintf(fp, buffer);
+   free(buffer);
 
    fprintf(fp, "   <tr>\n      <th></th>\n");
    for (m = 0; m < 12; m++) fprintf(fp, "      <th>%s</th>", _months[m]);
@@ -62,7 +48,8 @@ html_generate(Year_Desc *ydesc, const char *output)
         _item_generate(fp, ydesc, idesc, 1);
      }
 
-   fprintf(fp, end);
+   buffer = file_get_as_string(PACKAGE_DATA_DIR"end_html");
+   fprintf(fp, buffer);
    fclose(fp);
 
    return 0;

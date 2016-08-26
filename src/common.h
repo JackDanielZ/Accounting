@@ -4,6 +4,8 @@
 #include <Eina.h>
 #include <Eo.h>
 
+#define ERR(fmt, ...) fprintf(stderr, fmt"\n", ## __VA_ARGS__)
+
 typedef struct
 {
    Eina_Stringshare *name;
@@ -52,6 +54,8 @@ typedef struct
    unsigned int line_no;
    unsigned int offset;
 } Lexer;
+
+char* file_get_as_string(const char *filename);
 
 void lexer_reset(Lexer *l);
 

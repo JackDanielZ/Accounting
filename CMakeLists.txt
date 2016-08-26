@@ -11,3 +11,4 @@ find_package(Evas REQUIRED)
 find_package(Elementary REQUIRED)
 
 add_subdirectory(src)
+add_subdirectory(data)
