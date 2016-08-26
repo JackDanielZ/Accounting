@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Report</title>
+<link rel="stylesheet" type="text/css" href="data/theme.css" media="screen" />
 </head>
 <body>
 <table border="1" style="width:100%">
