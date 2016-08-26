@@ -2,6 +2,7 @@ LIST(APPEND CONFIG_FILES
      header_html
      end_html
      theme.css
+     script.js
     )
 
 #always copy config files into build directory, so egui_cmd will be able to generate egui_auto
