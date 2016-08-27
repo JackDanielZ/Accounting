@@ -8,9 +8,15 @@ static void
 _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
 {
    Eina_List *itr;
-   int m;
-   fprintf(fp, "   <tr>\n");
-   fprintf(fp, "      <th>%s</th>\n", idesc->name);
+   int m, nb_children = eina_list_count(idesc->subitems);
+   fprintf(fp, "   <tr%s>\n", level?" style=\"display:none;\"":"");
+   if (nb_children)
+      fprintf(fp, "      <th><button nbChildren=%d%s onclick=\"toggleRow(this);\">+</button></th><th>%s</th>\n",
+            nb_children, !nb_children ? " style=\"display:none;\"":"",
+            idesc->name);
+   else
+      fprintf(fp, "      <th></th><th>%s</th>\n", idesc->name);
+
    for (m = 0; m < 12; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);
@@ -42,13 +48,13 @@ html_generate(Year_Desc *ydesc, const char *output)
    fprintf(fp, buffer);
    free(buffer);
 
-   fprintf(fp, "   <tr>\n      <th></th>\n");
+   fprintf(fp, "   <tr>\n      <th></th><th></th>\n");
    for (m = 0; m < 12; m++) fprintf(fp, "      <th>%s</th>", _months[m]);
    fprintf(fp, "   </tr>\n");
 
    EINA_LIST_FOREACH(ydesc->debits, itr, idesc)
      {
-        _item_generate(fp, ydesc, idesc, 1);
+        _item_generate(fp, ydesc, idesc, 0);
      }
 
    buffer = file_get_as_string(PACKAGE_DATA_DIR"end_html");
