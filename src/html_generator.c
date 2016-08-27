@@ -9,13 +9,12 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
 {
    Eina_List *itr;
    int m, nb_children = eina_list_count(idesc->subitems);
-   fprintf(fp, "   <tr%s>\n", level?" style=\"display:none;\"":"");
+   fprintf(fp, "   <tr expanded=0 level=%d%s>\n", level, level?" style=\"display:none;\"":"");
+   fprintf(fp, "      <th>");
    if (nb_children)
-      fprintf(fp, "      <th><button nbChildren=%d%s onclick=\"toggleRow(this);\">+</button></th><th>%s</th>\n",
-            nb_children, !nb_children ? " style=\"display:none;\"":"",
-            idesc->name);
-   else
-      fprintf(fp, "      <th></th><th>%s</th>\n", idesc->name);
+      fprintf(fp, "      <button %s onclick=\"toggleRow(this);\">+</button>",
+            !nb_children ? " style=\"display:none;\"":"");
+   fprintf(fp, "      </th><th>%s</th>\n", idesc->name);
 
    for (m = 0; m < 12; m++)
      {
