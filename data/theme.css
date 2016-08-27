@@ -1,3 +1,9 @@
 body {
     background-color: lightblue;
 }
+td {
+    text-align: right;
+}
+th {
+    text-align: left;
+}
