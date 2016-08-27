@@ -18,9 +18,9 @@ typedef struct
 typedef struct
 {
    int year;
-   Eina_List *debits;
-   Eina_List *credits;
-   Eina_List *savings;
+   Item_Desc *debits;
+   Item_Desc *credits;
+   Item_Desc *savings;
    Eina_List *months;
 
    void *ui_data;

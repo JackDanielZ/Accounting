@@ -39,8 +39,6 @@ int
 html_generate(Year_Desc *ydesc, const char *output)
 {
    FILE *fp = fopen(output, "w");
-   Eina_List *itr;
-   Item_Desc *idesc;
    int m;
 
    char *buffer = file_get_as_string(PACKAGE_DATA_DIR"header_html");
@@ -51,10 +49,7 @@ html_generate(Year_Desc *ydesc, const char *output)
    for (m = 0; m < 12; m++) fprintf(fp, "      <th>%s</th>", _months[m]);
    fprintf(fp, "   </tr>\n");
 
-   EINA_LIST_FOREACH(ydesc->debits, itr, idesc)
-     {
-        _item_generate(fp, ydesc, idesc, 0);
-     }
+   _item_generate(fp, ydesc, ydesc->debits, 0);
 
    buffer = file_get_as_string(PACKAGE_DATA_DIR"end_html");
    fprintf(fp, buffer);

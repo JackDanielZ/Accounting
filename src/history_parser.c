@@ -41,23 +41,12 @@ _item_desc_find(Year_Desc *ydesc, Item_Desc *pdesc, Eina_Stringshare *categ, Ein
    if (pdesc) return _item_desc_find_rec(pdesc, categ, depth);
    else
      {
-        Eina_List *itr;
-        Item_Desc *sub_ret;
-        EINA_LIST_FOREACH(ydesc->debits, itr, pdesc)
-          {
-             sub_ret = _item_desc_find_rec(pdesc, categ, depth);
-             if (sub_ret) return sub_ret;
-          }
-        EINA_LIST_FOREACH(ydesc->credits, itr, pdesc)
-          {
-             sub_ret = _item_desc_find_rec(pdesc, categ, depth);
-             if (sub_ret) return sub_ret;
-          }
-        EINA_LIST_FOREACH(ydesc->savings, itr, pdesc)
-          {
-             sub_ret = _item_desc_find_rec(pdesc, categ, depth);
-             if (sub_ret) return sub_ret;
-          }
+        Item_Desc *sub_ret = _item_desc_find(ydesc, ydesc->debits, categ, depth);
+        if (sub_ret) return sub_ret;
+        sub_ret = _item_desc_find(ydesc, ydesc->credits, categ, depth);
+        if (sub_ret) return sub_ret;
+        sub_ret = _item_desc_find(ydesc, ydesc->savings, categ, depth);
+        if (sub_ret) return sub_ret;
      }
    return NULL;
 }
@@ -66,7 +55,9 @@ static Item_Desc *
 _other_item_find(Year_Desc *ydesc, Item_Desc *pdesc)
 {
    Eina_List *itr;
-   EINA_LIST_FOREACH(pdesc ? pdesc->subitems : ydesc->debits, itr, pdesc)
+   if (!pdesc) pdesc = ydesc->debits;
+   if (!pdesc) return NULL;
+   EINA_LIST_FOREACH(pdesc->subitems, itr, pdesc)
      {
         if (pdesc->as_other) return pdesc;
      }

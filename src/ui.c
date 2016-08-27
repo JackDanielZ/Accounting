@@ -98,15 +98,15 @@ _group_content_get(void *data, Evas_Object *gl, const char *part)
                 case ITEM_CREDITS:
                      {
                         char buf[16];
-                        Eina_List *idesc_list,  *itr;
+                        Eina_List *itr;
                         Item_Desc *idesc;
                         float sum = 0;
-                        if (item_type == ITEM_DEBITS) idesc_list = ydesc->debits;
-                        if (item_type == ITEM_CREDITS) idesc_list = ydesc->credits;
-                        if (item_type == ITEM_SAVINGS) idesc_list = ydesc->savings;
+                        if (item_type == ITEM_DEBITS) idesc = ydesc->debits;
+                        if (item_type == ITEM_CREDITS) idesc = ydesc->credits;
+                        if (item_type == ITEM_SAVINGS) idesc = ydesc->savings;
                         if (hist)
                           {
-                             EINA_LIST_FOREACH(idesc_list, itr, idesc)
+                             EINA_LIST_FOREACH(idesc?idesc->subitems:NULL, itr, idesc)
                                {
                                   sum += idesc_sum_calc(hist, idesc, NULL);
                                }
@@ -216,19 +216,16 @@ ui_year_create(Year_Desc *ydesc, Eo *win)
    elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_MONTHS, NULL,
                                  ELM_GENLIST_ITEM_NONE, NULL, NULL);
 
-   git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_DEBITS, NULL,
+   git = elm_genlist_item_append(cont, itc, ydesc->debits, NULL,
                                  ELM_GENLIST_ITEM_TREE, NULL, NULL);
-   efl_key_data_set(git, "idesc_list", ydesc->debits);
    elm_genlist_item_expanded_set(git, EINA_TRUE);
 
-   git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_SAVINGS, NULL,
+   git = elm_genlist_item_append(cont, itc, ydesc->savings, NULL,
                                  ELM_GENLIST_ITEM_TREE, NULL, NULL);
-   efl_key_data_set(git, "idesc_list", ydesc->savings);
    elm_genlist_item_expanded_set(git, EINA_TRUE);
 
-   git = elm_genlist_item_append(cont, gitc, (void *)(uintptr_t)ITEM_CREDITS, NULL,
+   git = elm_genlist_item_append(cont, itc, ydesc->credits, NULL,
                                  ELM_GENLIST_ITEM_TREE, NULL, NULL);
-   efl_key_data_set(git, "idesc_list", ydesc->credits);
    elm_genlist_item_expanded_set(git, EINA_TRUE);
 
    return cont;

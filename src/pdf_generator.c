@@ -54,8 +54,6 @@ pdf_generate(Year_Desc *ydesc, const char *output)
    char cmd[128];
    const char *tmp_file = "/tmp/accounting.tex";
    FILE *fp = fopen(tmp_file, "w");
-   Eina_List *itr;
-   Item_Desc *idesc;
    int m;
 
    fprintf(fp, header);
@@ -67,10 +65,7 @@ pdf_generate(Year_Desc *ydesc, const char *output)
    fprintf(fp, "Debits\n");
    for (m = 0; m < 12; m++) fprintf(fp, " & ");
    fprintf(fp, "\\\\\n");
-   EINA_LIST_FOREACH(ydesc->debits, itr, idesc)
-     {
-        _item_generate(fp, ydesc, idesc, 1);
-     }
+   _item_generate(fp, ydesc, ydesc->debits, 1);
 
    fprintf(fp, end);
    fclose(fp);

@@ -76,9 +76,10 @@ desc_parse(const char *buffer)
      {
         while (!is_next_token(&l, "}"))
           {
-             if (is_next_token(&l, "Debits")) ydesc->debits = _items_parse(&l);
-             if (is_next_token(&l, "Credits")) ydesc->credits = _items_parse(&l);
-             if (is_next_token(&l, "Savings")) ydesc->savings = _items_parse(&l);
+             Item_Desc *idesc = _item_parse(&l);
+             if (!strcmp(idesc->name, "Debits")) ydesc->debits = idesc;
+             if (!strcmp(idesc->name, "Credits")) ydesc->credits = idesc;
+             if (!strcmp(idesc->name, "Savings")) ydesc->savings = idesc;
           }
      }
 
