@@ -225,8 +225,9 @@ month_hist_get(Year_Desc *ydesc, int month)
    return hist;
 }
 
+/* sign: -1 only negative / +1 only positive / 0 both */
 float
-idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip)
+idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, int forced_sign)
 {
    Eina_List *itr;
    float sum = 0;
@@ -234,6 +235,8 @@ idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip)
    Month_Operation *op;
    EINA_LIST_FOREACH(mitem->ops, itr, op)
      {
+        if (forced_sign == -1 && !op->is_minus) continue;
+        if (forced_sign == 1 && op->is_minus) continue;
         float op_sum = (op->v * (op->is_minus ? -1 : 1));
         sum += op_sum;
         if (tooltip) eina_strbuf_append_printf(tooltip, "%s%s%.2f\n",
@@ -241,7 +244,7 @@ idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip)
      }
    EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
      {
-        sum += idesc_sum_calc(hist, idesc, NULL);
+        sum += idesc_sum_calc(hist, idesc, NULL, forced_sign);
      }
    return sum;
 }

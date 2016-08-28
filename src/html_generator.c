@@ -21,7 +21,7 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
         Month_History *hist = month_hist_get(ydesc, m);
         float sum = 0.0;
         Eina_Strbuf *tooltip = eina_strbuf_new();
-        if (hist) sum = idesc_sum_calc(hist, idesc, tooltip);
+        if (hist) sum = idesc_sum_calc(hist, idesc, tooltip, 0);
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         else sum = (int)sum;
         fprintf(fp, "      <td title=\"%s\">%d</td>\n",
