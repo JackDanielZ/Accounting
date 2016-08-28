@@ -50,6 +50,25 @@ html_generate(Year_Desc *ydesc, const char *output)
    fprintf(fp, "   </tr>\n");
 
    _item_generate(fp, ydesc, ydesc->debits, 0);
+   _item_generate(fp, ydesc, ydesc->savings, 0);
+   _item_generate(fp, ydesc, ydesc->credits, 0);
+
+   fprintf(fp, "   <tr>\n      <th></th><th>Remaining</th>\n");
+   for (m = 0; m < 12; m++)
+     {
+        Month_History *hist = month_hist_get(ydesc, m);
+        float sum = 0.0;
+        if (hist)
+          {
+             sum += idesc_sum_calc(hist, ydesc->credits, NULL, 0);
+             sum -= idesc_sum_calc(hist, ydesc->debits, NULL, 0);
+             sum -= idesc_sum_calc(hist, ydesc->savings, NULL, 1);
+          }
+        if (sum - (int)sum > 0.5) sum = (int)sum + 1;
+        else sum = (int)sum;
+        fprintf(fp, "      <td title=\"%s\">%d</td>\n", "", (int)sum);
+     }
+   fprintf(fp, "   </tr>\n");
 
    buffer = file_get_as_string(PACKAGE_DATA_DIR"end_html");
    fprintf(fp, buffer);
