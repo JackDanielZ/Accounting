@@ -233,6 +233,8 @@ idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc
    Month_Item *mitem = month_item_find(hist, idesc);
    float sum = filter & CALC_INIT ? mitem->init : 0;
    Month_Operation *op;
+   if ((filter & CALC_INIT) && tooltip)
+      eina_strbuf_append_printf(tooltip, "Init %.2f\n", sum);
    EINA_LIST_FOREACH(mitem->ops, itr, op)
      {
         if (((filter & CALC_NEGATIVE) && op->is_minus) ||
