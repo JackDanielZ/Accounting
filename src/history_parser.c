@@ -168,6 +168,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
    if (!idesc)
      {
         /* Unknown category*/
+        fprintf(stderr, "%s cannot be found in the description file\n", lchunk_shr);
         return EINA_FALSE;
      }
    if (idesc->as_trash) return EINA_TRUE;
