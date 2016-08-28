@@ -6,6 +6,14 @@
 
 #define ERR(fmt, ...) fprintf(stderr, fmt"\n", ## __VA_ARGS__)
 
+typedef enum
+{
+   CALC_POSITIVE  = 1 << 0,
+   CALC_NEGATIVE  = 1 << 1,
+   CALC_INIT      = 1 << 2,
+   CALC_ALL       = -1,
+} Calc_Filtering;
+
 typedef struct
 {
    Eina_Stringshare *name;
@@ -39,6 +47,7 @@ typedef struct
    Eina_List *ops;
    float max;
    float expected;
+   float init;
 } Month_Item;
 
 typedef struct
@@ -84,7 +93,7 @@ Month_History *
 month_hist_get(Year_Desc *ydesc, int month);
 
 float
-idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, int forced_sign);
+idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter);
 
 #define ERROR_PRINT(l, s) \
 { \

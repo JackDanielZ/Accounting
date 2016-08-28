@@ -129,6 +129,16 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
                     }
                   parent_mitem->expected = sum;
                }
+             else if (!strcmp(end_categ, "init"))
+               {
+                  end_categ += 4;
+                  if (parent_mitem->init)
+                    {
+                       // FIXME ERROR expected already set
+                       return EINA_FALSE;
+                    }
+                  parent_mitem->init = sum;
+               }
              else
                {
                   return EINA_FALSE;
