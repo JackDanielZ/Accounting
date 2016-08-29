@@ -14,14 +14,17 @@ typedef enum
    CALC_ALL       = -1,
 } Calc_Filtering;
 
-typedef struct
+typedef struct _Item_Desc Item_Desc;
+
+struct _Item_Desc
 {
    Eina_Stringshare *name;
    Eina_List *nicknames; /* List of Eina_Stringshare */
    Eina_List *subitems;
+   Item_Desc *parent;
    Eina_Bool as_other : 1;
    Eina_Bool as_trash : 1;
-} Item_Desc;
+};
 
 typedef struct
 {

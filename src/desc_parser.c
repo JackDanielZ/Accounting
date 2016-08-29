@@ -2,17 +2,21 @@
 
 #include "common.h"
 
-static Eina_List *_items_parse(Lexer *l);
+static Eina_List *_items_parse(Lexer *l, Item_Desc *parent);
 
 static Item_Desc *
-_item_parse(Lexer *l)
+_item_parse(Lexer *l, Item_Desc *parent)
 {
    Item_Desc *idesc = NULL;
    char *elt = next_word(l, " ", EINA_TRUE);
    Eina_Bool end = !elt;
    while (!end)
      {
-        if (!idesc) idesc = calloc(1, sizeof(*idesc));
+        if (!idesc)
+          {
+             idesc = calloc(1, sizeof(*idesc));
+             idesc->parent = parent;
+          }
         if (elt)
           {
              trailing_remove(elt);
@@ -38,7 +42,7 @@ _item_parse(Lexer *l)
           }
         else
           {
-             idesc->subitems = _items_parse(l);
+             idesc->subitems = _items_parse(l, idesc);
              end = EINA_TRUE;
           }
      }
@@ -46,14 +50,14 @@ _item_parse(Lexer *l)
 }
 
 static Eina_List *
-_items_parse(Lexer *l)
+_items_parse(Lexer *l, Item_Desc *parent)
 {
    Eina_List *lst = NULL;
    if (is_next_token(l, "{"))
      {
         while (!is_next_token(l, "}"))
           {
-             Item_Desc *idesc = _item_parse(l);
+             Item_Desc *idesc = _item_parse(l, parent);
              if (idesc) lst = eina_list_append(lst, idesc);
           }
      }
@@ -76,7 +80,7 @@ desc_parse(const char *buffer)
      {
         while (!is_next_token(&l, "}"))
           {
-             Item_Desc *idesc = _item_parse(&l);
+             Item_Desc *idesc = _item_parse(&l, NULL);
              if (!strcmp(idesc->name, "Debits")) ydesc->debits = idesc;
              if (!strcmp(idesc->name, "Credits")) ydesc->credits = idesc;
              if (!strcmp(idesc->name, "Savings")) ydesc->savings = idesc;

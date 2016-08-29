@@ -15,40 +15,96 @@ _is_desc_item_named(Item_Desc *idesc, Eina_Stringshare *name_shr)
    return EINA_FALSE;
 }
 
-static Item_Desc *
-_item_desc_find_rec(Item_Desc *cur_desc, Eina_Stringshare *categ, int depth)
+static void
+_item_desc_find_rec(Item_Desc *cur_desc, Eina_Stringshare *categ, int depth, Eina_List **ret)
 {
    Eina_List *itr;
    Eina_Stringshare *nick;
    Item_Desc *sub_desc;
-   if (!cur_desc) return NULL;
+   if (!cur_desc) return;
    EINA_LIST_FOREACH(cur_desc->nicknames, itr, nick)
      {
-        if (nick == categ) return cur_desc;
+        if (nick == categ) *ret = eina_list_append(*ret, cur_desc);
      }
-   if (!depth) return NULL;
+   if (!depth) return;
    EINA_LIST_FOREACH(cur_desc->subitems, itr, sub_desc)
      {
-        Item_Desc *sub_ret = _item_desc_find_rec(sub_desc, categ, depth - 1);
-        if (sub_ret) return sub_ret;
+        _item_desc_find_rec(sub_desc, categ, depth - 1, ret);
      }
-   return NULL;
+}
+
+static Item_Desc *
+_item_desc_candidate_guess(Eina_List *candidates)
+{
+   Eina_List *itr, *normal_list = NULL, *other_list = NULL;
+   Item_Desc *idesc, *found = NULL;
+   int nb_other = 0, nb_normal = 0;
+   EINA_LIST_FOREACH(candidates, itr, idesc)
+     {
+        if (idesc->as_other)
+          {
+             other_list = eina_list_append(other_list, idesc);
+             nb_other++;
+          }
+        else
+          {
+             normal_list = eina_list_append(normal_list, idesc);
+             nb_normal++;
+          }
+     }
+   if (nb_normal == 1)
+     {
+        found = eina_list_data_get(normal_list);
+        goto end;
+     }
+   if (nb_normal > 1)
+     {
+        EINA_LIST_FOREACH(normal_list, itr, idesc)
+          {
+             if (!idesc->parent || !idesc->parent->parent)
+               {
+                  found = idesc;
+                  goto end;
+               }
+          }
+     }
+   if (nb_other == 1)
+     {
+        found = eina_list_data_get(other_list);
+        goto end;
+     }
+   if (nb_other > 1)
+     {
+        EINA_LIST_FOREACH(other_list, itr, idesc)
+          {
+             if (!idesc->parent || !idesc->parent->parent)
+               {
+                  found = idesc;
+                  goto end;
+               }
+          }
+     }
+end:
+   eina_list_free(normal_list);
+   eina_list_free(other_list);
+   return found;
 }
 
 static Item_Desc *
 _item_desc_find(Year_Desc *ydesc, Item_Desc *pdesc, Eina_Stringshare *categ, Eina_Bool depth)
 {
-   if (pdesc) return _item_desc_find_rec(pdesc, categ, depth);
+   Eina_List *cands = NULL;
+   Item_Desc *ret;
+   if (pdesc) _item_desc_find_rec(pdesc, categ, depth, &cands);
    else
      {
-        Item_Desc *sub_ret = _item_desc_find(ydesc, ydesc->debits, categ, depth);
-        if (sub_ret) return sub_ret;
-        sub_ret = _item_desc_find(ydesc, ydesc->credits, categ, depth);
-        if (sub_ret) return sub_ret;
-        sub_ret = _item_desc_find(ydesc, ydesc->savings, categ, depth);
-        if (sub_ret) return sub_ret;
+        _item_desc_find_rec(ydesc->debits, categ, depth, &cands);
+        _item_desc_find_rec(ydesc->credits, categ, depth, &cands);
+        _item_desc_find_rec(ydesc->savings, categ, depth, &cands);
      }
-   return NULL;
+   ret = _item_desc_candidate_guess(cands);
+   eina_list_free(cands);
+   return ret;
 }
 
 static Item_Desc *
