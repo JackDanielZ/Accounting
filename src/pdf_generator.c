@@ -36,7 +36,7 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
      {
         Month_History *hist = month_hist_get(ydesc, m);
         float sum = 0.0;
-        if (hist) sum = idesc_sum_calc(hist, idesc, NULL, CALC_ALL);
+        if (hist) sum = idesc_sum_calc(hist, idesc, NULL, CALC_ALL, NULL);
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         else sum = (int)sum;
         fprintf(fp, " & %d", (int)sum);

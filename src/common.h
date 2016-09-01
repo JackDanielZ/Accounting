@@ -96,7 +96,8 @@ Month_History *
 month_hist_get(Year_Desc *ydesc, int month);
 
 float
-idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter);
+idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter,
+      float *expected);
 
 #define ERROR_PRINT(l, s) \
 { \

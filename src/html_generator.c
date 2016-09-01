@@ -20,9 +20,9 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
    for (m = 0; m < 12; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);
-        float sum = 0.0;
+        float sum = 0.0, expected = 0.0;
         Eina_Strbuf *tooltip = eina_strbuf_new();
-        if (hist) sum = idesc_sum_calc(hist, idesc, tooltip, CALC_ALL);
+        if (hist) sum = idesc_sum_calc(hist, idesc, tooltip, CALC_ALL, &expected);
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         else sum = (int)sum;
         fprintf(fp, "      <td title=\"%s\">%d</td>\n",
@@ -61,9 +61,9 @@ html_generate(Year_Desc *ydesc, const char *output)
         float sum = 0.0;
         if (hist)
           {
-             sum += idesc_sum_calc(hist, ydesc->credits, NULL, CALC_ALL);
-             sum -= idesc_sum_calc(hist, ydesc->debits, NULL, CALC_ALL);
-             sum -= idesc_sum_calc(hist, ydesc->savings, NULL, CALC_POSITIVE);
+             sum += idesc_sum_calc(hist, ydesc->credits, NULL, CALC_ALL, NULL);
+             sum -= idesc_sum_calc(hist, ydesc->debits, NULL, CALC_ALL, NULL);
+             sum -= idesc_sum_calc(hist, ydesc->savings, NULL, CALC_POSITIVE, NULL);
           }
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         else sum = (int)sum;

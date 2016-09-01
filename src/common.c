@@ -227,11 +227,13 @@ month_hist_get(Year_Desc *ydesc, int month)
 
 /* sign: -1 only negative / +1 only positive / 0 both */
 float
-idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter)
+idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter,
+      float *expected_ret)
 {
    Eina_List *itr;
    Month_Item *mitem = month_item_find(hist, idesc);
    float sum = filter & CALC_INIT ? mitem->init : 0;
+   float expected = 0;
    Month_Operation *op;
    if ((filter & CALC_INIT) && tooltip && sum)
       eina_strbuf_append_printf(tooltip, "Init %.2f\n", sum);
@@ -248,8 +250,13 @@ idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc
      }
    EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
      {
-        sum += idesc_sum_calc(hist, idesc, NULL, filter);
+        sum += idesc_sum_calc(hist, idesc, NULL, filter, &expected);
      }
+   if (mitem->max && mitem->max > sum) expected = mitem->max - sum;
+   else if (mitem->expected) expected += mitem->expected;
+   if (expected && tooltip)
+      eina_strbuf_append_printf(tooltip, "Expected: %.2f\n", expected);
+   if (expected_ret) *expected_ret += expected;
    return sum;
 }
 
