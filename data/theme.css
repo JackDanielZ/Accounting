@@ -1,9 +1,26 @@
 body {
     background-color: lightblue;
 }
-td {
-    text-align: right;
-}
 th {
     text-align: left;
+}
+tr.d0 th {
+   background-color: #CC9999;
+   color: black;
+   text-align: left;
+}
+tr.d0 td {
+   background-color: #CC9999;
+   color: black;
+   text-align: right;
+}
+tr.d1 th {
+   background-color: #9999CC;
+   color: black;
+   text-align: left;
+}
+tr.d1 td {
+   background-color: #9999CC;
+   color: black;
+   text-align: right;
 }

@@ -4,13 +4,17 @@
 
 extern const char *_months[];
 
+static int _row_number = 0;
+
 static void
 _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
 {
    Eina_List *itr;
    int m, nb_children = eina_list_count(idesc->subitems);
    if (idesc->as_trash) return;
-   fprintf(fp, "   <tr expanded=0 level=%d%s>\n", level, level?" style=\"display:none;\"":"");
+   fprintf(fp, "   <tr class=\"d%d\" expanded=0 level=%d%s>\n",
+         _row_number++ % 2,
+         level, level?" style=\"display:none;\"":"");
    fprintf(fp, "      <th>");
    if (nb_children)
       fprintf(fp, "      <button %s onclick=\"toggleRow(this);\">+</button>",
@@ -49,7 +53,8 @@ html_generate(Year_Desc *ydesc, const char *output)
    fprintf(fp, buffer);
    free(buffer);
 
-   fprintf(fp, "   <tr>\n      <th></th><th></th>\n");
+   _row_number = 0;
+   fprintf(fp, "   <tr class=\"d%d\">\n      <th></th><th></th>\n", _row_number++ % 2);
    for (m = 0; m < 12; m++) fprintf(fp, "      <th>%s</th>", _months[m]);
    fprintf(fp, "   </tr>\n");
 
@@ -57,7 +62,7 @@ html_generate(Year_Desc *ydesc, const char *output)
    _item_generate(fp, ydesc, ydesc->savings, 0);
    _item_generate(fp, ydesc, ydesc->credits, 0);
 
-   fprintf(fp, "   <tr>\n      <th></th><th>Remaining</th>\n");
+   fprintf(fp, "   <tr class=\"d%d\">\n      <th></th><th>Remaining</th>\n", _row_number++ % 2);
    for (m = 0; m < 12; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);

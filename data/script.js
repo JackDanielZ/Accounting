@@ -5,6 +5,7 @@ function toggleRow(e){
     var level = Number(sub_row.getAttribute("level"));
     var parent_expanded = Boolean(parent_row.getAttribute("expanded") == "1");
     var max_depth = 1;
+    var row_parity = true;
     e.textContent = parent_expanded ? "+" : "-";
     parent_row.setAttribute("expanded", parent_expanded?"0":"1");
     while (sub_row && main_level < level)
