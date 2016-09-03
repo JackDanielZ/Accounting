@@ -20,14 +20,17 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
    for (m = 0; m < 12; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);
+        Month_Item *mitem = month_item_find(hist, idesc);
         float sum = 0.0, expected = 0.0;
         Eina_Strbuf *tooltip = eina_strbuf_new();
         if (hist) sum = idesc_sum_calc(hist, idesc, tooltip, CALC_ALL, &expected);
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         else sum = (int)sum;
-        fprintf(fp, "      <td title=\"%s\">%d</td>\n",
+        fprintf(fp, "      <td title=\"%s\">%s%d%s</td>\n",
               eina_strbuf_string_get(tooltip),
-              (int)sum);
+              mitem && mitem->expected?"<i>":"",
+              (int)sum,
+              mitem && mitem->expected?"</i>":"");
      }
    fprintf(fp, "   </tr>\n");
    EINA_LIST_FOREACH(idesc->subitems, itr, idesc)

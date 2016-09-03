@@ -225,7 +225,15 @@ month_hist_get(Year_Desc *ydesc, int month)
    return hist;
 }
 
-/* sign: -1 only negative / +1 only positive / 0 both */
+/*
+ *
+ * Calculation:
+ * The filter parameter can be used to select specific operations.
+ * If max is set, max - sum is set in the expected variable
+ * If expected is set, MAX between its value and the actual sum is used. Nothing
+ * set in the expected variable.
+ *
+ */
 float
 idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter,
       float *expected_ret)
@@ -252,8 +260,14 @@ idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc
      {
         sum += idesc_sum_calc(hist, idesc, NULL, filter, &expected);
      }
-   if (mitem->max && mitem->max > sum) expected = mitem->max - sum;
-   else if (mitem->expected) expected += mitem->expected;
+   if (mitem->max)
+     {
+        if (mitem->max > sum) expected = mitem->max - sum;
+     }
+   else if (mitem->expected)
+     {
+        if (mitem->expected > sum) sum = mitem->expected;
+     }
    if (expected && tooltip)
       eina_strbuf_append_printf(tooltip, "Expected: %.2f\n", expected);
    if (expected_ret) *expected_ret += expected;
