@@ -253,6 +253,7 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
     * for each chunk
     */
    Eina_Bool success = EINA_FALSE;
+   Eina_Bool equal_required = EINA_FALSE;
    Lexer l;
    l.buffer = buffer;
    lexer_reset(&l);
@@ -273,14 +274,23 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
                }
           }
         else goto end;
-        if (is_next_token(&l, "="))
+        if (is_next_token(&l, "&"))
+          {
+             equal_required = EINA_TRUE;
+          }
+        else if (is_next_token(&l, "="))
           {
              next_number(&l);
+             equal_required = EINA_FALSE;
           }
         else
           {
+             if (equal_required)
+               {
+                  ERROR_PRINT(&l, "'=' required");
+                  return EINA_FALSE;
+               }
              is_next_token(&l, "\n");
-             is_next_token(&l, "&");
           }
      }
    while (1);

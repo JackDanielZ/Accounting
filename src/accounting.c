@@ -82,7 +82,12 @@ elm_main(int argc, char **argv)
         buffer = file_get_as_string(history_file);
         if (buffer)
           {
-             history_parse(buffer, m, ydesc);
+             if (!history_parse(buffer, m, ydesc))
+               {
+                  fprintf(stderr, "Parsing of %s failed\n", history_file);
+                  ret = 1;
+                  goto end;
+               }
              free(buffer);
           }
      }
