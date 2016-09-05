@@ -30,11 +30,18 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
         if (hist) sum = idesc_sum_calc(hist, idesc, tooltip, CALC_ALL, &expected);
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         else sum = (int)sum;
-        fprintf(fp, "      <td title=\"%s\">%s%d%s</td>\n",
-              eina_strbuf_string_get(tooltip),
-              mitem && mitem->expected?"<i>":"",
-              (int)sum,
-              mitem && mitem->expected?"</i>":"");
+
+        fprintf(fp, "      <td title=\"%s\">", eina_strbuf_string_get(tooltip));
+        if (mitem)
+          {
+             fprintf(fp, "%s%d%s",
+                   mitem->expected?"<i>":"", (int)sum, mitem->expected?"</i>":"");
+             if (mitem->max)
+               {
+                  fprintf(fp, " / %d", (int)mitem->max);
+               }
+          }
+        fprintf(fp, "</td>\n");
      }
    fprintf(fp, "   </tr>\n");
    EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
