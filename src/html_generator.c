@@ -31,15 +31,21 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         else sum = (int)sum;
 
-        fprintf(fp, "      <td title=\"%s\">", eina_strbuf_string_get(tooltip));
+        fprintf(fp, "      <td title=\"%s\"", eina_strbuf_string_get(tooltip));
         if (mitem)
           {
-             fprintf(fp, "%s%d%s",
+             fprintf(fp, "%s>%s%d%s",
+                   mitem->max && sum > mitem->max ?"style=\"color:red\"><b" : "",
                    mitem->expected?"<i>":"", (int)sum, mitem->expected?"</i>":"");
              if (mitem->max)
                {
                   fprintf(fp, " / %d", (int)mitem->max);
                }
+             if (mitem->max && sum > mitem->max) fprintf(fp, "</b>");
+          }
+        else
+          {
+             fprintf(fp, ">");
           }
         fprintf(fp, "</td>\n");
      }
