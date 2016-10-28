@@ -81,8 +81,6 @@ float next_number(Lexer *l);
 
 char *chunk_get(Lexer *l, Eina_Bool include, char token, ...);
 
-char *line_get(Lexer *l);
-
 void error_print(Lexer *l, const char *error_str);
 
 void trailing_remove(char *str);
