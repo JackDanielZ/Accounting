@@ -79,16 +79,20 @@ html_generate(Year_Desc *ydesc, const char *output)
    for (m = 0; m < 12; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);
-        float sum = 0.0;
+        float sum = 0.0, expected_debits = 0.0;
         if (hist)
           {
              sum += idesc_sum_calc(hist, ydesc->credits, NULL, CALC_ALL, NULL);
-             sum -= idesc_sum_calc(hist, ydesc->debits, NULL, CALC_ALL, NULL);
+             sum -= idesc_sum_calc(hist, ydesc->debits, NULL, CALC_ALL, &expected_debits);
              sum -= idesc_sum_calc(hist, ydesc->savings, NULL, CALC_POSITIVE, NULL);
           }
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
+        if (expected_debits - (int)expected_debits > 0.5) expected_debits = (int)expected_debits + 1;
         else sum = (int)sum;
-        fprintf(fp, "      <td title=\"%s\">%d</td>\n", "", (int)sum);
+        if (!expected_debits)
+           fprintf(fp, "      <td>%d</td>\n", (int)sum);
+        else
+           fprintf(fp, "      <td>%d (-%d)</td>\n", (int)sum, (int)expected_debits);
      }
    fprintf(fp, "   </tr>\n");
 
