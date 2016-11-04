@@ -132,7 +132,7 @@ next_number(Lexer *l)
    n_str[size] = '\0';
    l->current = str;
    l->offset += size;
-   return atoi(n_str);
+   return atof(n_str);
 }
 
 char *

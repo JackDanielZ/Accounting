@@ -120,7 +120,7 @@ _other_item_find(Year_Desc *ydesc, Item_Desc *pdesc)
    return NULL;
 }
 
-static Eina_Bool
+static float
 _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
 {
    /*
@@ -134,9 +134,9 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
    Eina_Stringshare *lchunk_shr = NULL;
    Eina_Bool is_minus = EINA_FALSE;
    trailing_remove(chunk);
-   float sum = -1.0;
+   float sum = 0.0;
    char *ptr = strrchr(chunk, ' '); /* Look for sum */
-   if (!ptr) return EINA_FALSE;
+   if (!ptr) return sum;
    sum = atof(ptr + 1);
    *ptr = '\0';
 
@@ -171,7 +171,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
                   if (parent_mitem->max)
                     {
                        // FIXME ERROR max already set
-                       return EINA_FALSE;
+                       return sum;
                     }
                   parent_mitem->max = sum;
                }
@@ -181,7 +181,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
                   if (parent_mitem->expected)
                     {
                        // FIXME ERROR expected already set
-                       return EINA_FALSE;
+                       return sum;
                     }
                   parent_mitem->expected = sum;
                }
@@ -191,15 +191,11 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
                   if (parent_mitem->init)
                     {
                        // FIXME ERROR expected already set
-                       return EINA_FALSE;
+                       return sum;
                     }
                   parent_mitem->init = sum;
                }
-             else
-               {
-                  return EINA_FALSE;
-               }
-             return EINA_TRUE;
+             return sum;
           }
         else if (*end_categ == '+' || *end_categ == '-')
           {
@@ -225,9 +221,9 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
      {
         /* Unknown category*/
         fprintf(stderr, "%s cannot be found in the description file\n", lchunk_shr);
-        return EINA_FALSE;
+        return sum;
      }
-   if (idesc->as_trash) return EINA_TRUE;
+   if (idesc->as_trash) return sum;
    Month_Item *item = month_item_find(hist, idesc);
    if (item)
      {
@@ -240,7 +236,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
      }
    eina_stringshare_del(chunk_shr);
    eina_stringshare_del(lchunk_shr);
-   return !!item;
+   return sum;
 }
 
 Eina_Bool
@@ -254,6 +250,7 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
     */
    Eina_Bool success = EINA_FALSE;
    Eina_Bool equal_required = EINA_FALSE;
+   float line_sum = 0.0;
    Lexer l;
    l.buffer = buffer;
    lexer_reset(&l);
@@ -266,12 +263,14 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
         char *chunk = chunk_get(&l, EINA_FALSE, '\n', '&', '=', '\0');
         if (chunk)
           {
-             if (!_chunk_handle(chunk, ydesc, hist))
+             float val = _chunk_handle(chunk, ydesc, hist);
+             if (!val)
                {
                   ERROR_PRINT(&l, "Chunk error");
                   fprintf(stderr, "%s\n", chunk);
                   return EINA_FALSE;
                }
+             line_sum += val;
           }
         else goto end;
         if (is_next_token(&l, "&"))
@@ -280,8 +279,15 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
           }
         else if (is_next_token(&l, "="))
           {
-             next_number(&l);
+             float given_sum = next_number(&l);
+             if ((abs)(given_sum - line_sum) > 0.01)
+               {
+                  ERROR_PRINT(&l, "Incorrect sum");
+                  fprintf(stderr, "Given %.2f Expected %.2f\n", given_sum, line_sum);
+                  return EINA_FALSE;
+               }
              equal_required = EINA_FALSE;
+             line_sum = 0.0;
           }
         else
           {
@@ -291,6 +297,7 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
                   return EINA_FALSE;
                }
              is_next_token(&l, "\n");
+             line_sum = 0.0;
           }
      }
    while (1);
