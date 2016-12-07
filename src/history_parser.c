@@ -120,8 +120,8 @@ _other_item_find(Year_Desc *ydesc, Item_Desc *pdesc)
    return NULL;
 }
 
-static float
-_chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
+static Eina_Bool
+_chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
 {
    /*
     * reverse look up float number
@@ -136,7 +136,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
    trailing_remove(chunk);
    float sum = 0.0;
    char *ptr = strrchr(chunk, ' '); /* Look for sum */
-   if (!ptr) return sum;
+   if (!ptr) goto ok;
    sum = atof(ptr + 1);
    *ptr = '\0';
 
@@ -171,7 +171,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
                   if (parent_mitem->max)
                     {
                        // FIXME ERROR max already set
-                       return sum;
+                       goto ok;
                     }
                   parent_mitem->max = sum;
                }
@@ -181,7 +181,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
                   if (parent_mitem->expected)
                     {
                        // FIXME ERROR expected already set
-                       return sum;
+                       goto ok;
                     }
                   parent_mitem->expected = sum;
                }
@@ -191,11 +191,11 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
                   if (parent_mitem->init)
                     {
                        // FIXME ERROR expected already set
-                       return sum;
+                       goto ok;
                     }
                   parent_mitem->init = sum;
                }
-             return sum;
+             goto ok;
           }
         else if (*end_categ == '+' || *end_categ == '-')
           {
@@ -221,9 +221,9 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
      {
         /* Unknown category*/
         fprintf(stderr, "%s cannot be found in the description file\n", lchunk_shr);
-        return sum;
+        goto ok;
      }
-   if (idesc->as_trash) return sum;
+   if (idesc->as_trash) goto ok;
    Month_Item *item = month_item_find(hist, idesc);
    if (item)
      {
@@ -236,7 +236,9 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist)
      }
    eina_stringshare_del(chunk_shr);
    eina_stringshare_del(lchunk_shr);
-   return sum;
+ok:
+   *val = sum;
+   return EINA_TRUE;
 }
 
 Eina_Bool
@@ -263,8 +265,8 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
         char *chunk = chunk_get(&l, EINA_FALSE, '\n', '&', '=', '\0');
         if (chunk)
           {
-             float val = _chunk_handle(chunk, ydesc, hist);
-             if (!val)
+             float val = 0.0;
+             if (!_chunk_handle(chunk, ydesc, hist, &val))
                {
                   ERROR_PRINT(&l, "Chunk error");
                   fprintf(stderr, "%s\n", chunk);
