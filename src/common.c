@@ -190,6 +190,7 @@ void
 my_to_lower(char *ptr, int len)
 {
    int i;
+   if (!ptr) return;
    if (len == -1) len = strlen(ptr);
    for (i = 0; i < len; i++)
      {
@@ -225,6 +226,68 @@ month_hist_get(Year_Desc *ydesc, int month)
    return hist;
 }
 
+Item_Desc *
+individual_find(Year_Desc *ydesc, Eina_Stringshare *name)
+{
+   Eina_List *itr, *itr2, *l = ydesc->individuals ? ydesc->individuals->subitems : NULL;
+   Item_Desc *individual;
+   if (!name) return NULL;
+   EINA_LIST_FOREACH(l, itr, individual)
+     {
+        Eina_Stringshare *ind_name;
+        if (individual->name == name) return individual;
+        EINA_LIST_FOREACH(individual->nicknames, itr2, ind_name)
+          {
+             if (ind_name == name) return individual;
+          }
+     }
+   return NULL;
+}
+
+Eina_Bool
+does_idesc_fit_name(Year_Desc *ydesc, Item_Desc *idesc, Eina_Stringshare *name)
+{
+   Eina_List *itr;
+   Eina_Stringshare *nick;
+   Item_Desc *ind_name = individual_find(ydesc, name);
+   EINA_LIST_FOREACH(idesc->nicknames, itr, nick)
+     {
+        Item_Desc *ind_nick = individual_find(ydesc, nick);
+        if (nick == name || (ind_name && ind_name == ind_nick))
+          {
+             return EINA_TRUE;
+          }
+     }
+   return EINA_FALSE;
+}
+
+static Eina_Bool
+_does_idesc_fit_individual(Year_Desc *ydesc, Item_Desc *idesc, Eina_Stringshare *name)
+{
+   Item_Desc *ind_name = individual_find(ydesc, name);
+   Eina_Bool ind_nick_found = EINA_FALSE;
+   if (idesc->individual)
+     {
+        if (ind_name == individual_find(ydesc, idesc->individual)) return EINA_TRUE;
+     }
+   else
+     {
+        Eina_List *itr;
+        Eina_Stringshare *nick;
+        EINA_LIST_FOREACH(idesc->nicknames, itr, nick)
+          {
+             Item_Desc *ind_nick = individual_find(ydesc, nick);
+             ind_nick_found |= (!!ind_nick);
+             if (nick == name || (ind_name && ind_name == ind_nick))
+               {
+                  return EINA_TRUE;
+               }
+          }
+     }
+   if (!name) return !ind_nick_found;
+   return EINA_FALSE;
+}
+
 /*
  *
  * Calculation:
@@ -232,33 +295,45 @@ month_hist_get(Year_Desc *ydesc, int month)
  * If max is set, max - sum is set in the expected variable
  * If expected is set, MAX between its value and the actual sum is used. Nothing
  * set in the expected variable.
+ * If filter includes CALC_INDIVIDUALS, sum all and dont check individual
+ * parameter. Otherwise, if individual == NULL, only sum common stuff else sum
+ * only specific items of individual.
  *
  */
 float
-idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter,
-      float *expected_ret)
+idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc,
+      Eina_Strbuf *tooltip, Calc_Filtering filter,
+      Eina_Stringshare *individual, float *expected_ret)
 {
    Eina_List *itr;
+   if (!idesc) return 0.0;
    Month_Item *mitem = month_item_find(hist, idesc);
    float sum = filter & CALC_INIT ? mitem->init : 0;
    float expected = 0;
    Month_Operation *op;
    if ((filter & CALC_INIT) && tooltip && sum)
       eina_strbuf_append_printf(tooltip, "Init %.2f\n", sum);
-   EINA_LIST_FOREACH(mitem->ops, itr, op)
+   if (filter & CALC_INDIVIDUALS ||
+         (!individual && !idesc->individual) ||
+         (individual && _does_idesc_fit_individual(ydesc, idesc, individual)))
      {
-        if (((filter & CALC_NEGATIVE) && op->is_minus) ||
-            ((filter & CALC_POSITIVE) && !op->is_minus))
+        if (individual) filter |= CALC_INDIVIDUALS; /* So for children we dont check individuality */
+        EINA_LIST_FOREACH(mitem->ops, itr, op)
           {
-             float op_sum = (op->v * (op->is_minus ? -1 : 1));
-             sum += op_sum;
-             if (tooltip) eina_strbuf_append_printf(tooltip, "%s%s%.2f\n",
-                   op->name?op->name:"", op->name?": ":"", op_sum);
+             if (((filter & CALC_NEGATIVE) && op->is_minus) ||
+                   ((filter & CALC_POSITIVE) && !op->is_minus))
+               {
+                  float op_sum = (op->v * (op->is_minus ? -1 : 1));
+                  sum += op_sum;
+                  if (tooltip) eina_strbuf_append_printf(tooltip, "%s%s%.2f\n",
+                        op->name?op->name:"", op->name?": ":"", op_sum);
+               }
           }
      }
    EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
      {
-        sum += idesc_sum_calc(hist, idesc, NULL, filter, &expected);
+        if ((filter & CALC_INDIVIDUALS) || _does_idesc_fit_individual(ydesc, idesc, individual))
+           sum += idesc_sum_calc(ydesc, hist, idesc, NULL, filter, individual, &expected);
      }
    if (mitem->max)
      {

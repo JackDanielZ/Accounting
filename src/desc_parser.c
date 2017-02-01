@@ -40,6 +40,14 @@ _item_parse(Lexer *l, Item_Desc *parent)
              idesc->as_trash = EINA_TRUE;
              elt = NULL;
           }
+        else if (is_next_token(l, "@"))
+          {
+             char *individual = next_word(l, "", EINA_TRUE);
+             eina_str_tolower(&individual);
+             idesc->individual = eina_stringshare_add(individual);
+             end = EINA_TRUE;
+             free(individual);
+          }
         else
           {
              idesc->subitems = _items_parse(l, idesc);
@@ -67,6 +75,8 @@ _items_parse(Lexer *l, Item_Desc *parent)
 Year_Desc *
 desc_parse(const char *buffer)
 {
+   Item_Desc *idesc;
+   Eina_List *itr;
    Eina_Bool success = EINA_FALSE;
    Lexer l;
    l.buffer = buffer;
@@ -80,12 +90,16 @@ desc_parse(const char *buffer)
      {
         while (!is_next_token(&l, "}"))
           {
-             Item_Desc *idesc = _item_parse(&l, NULL);
+             idesc = _item_parse(&l, NULL);
+             if (!strcmp(idesc->name, "Individuals")) ydesc->individuals = idesc;
              if (!strcmp(idesc->name, "Debits")) ydesc->debits = idesc;
              if (!strcmp(idesc->name, "Credits")) ydesc->credits = idesc;
              if (!strcmp(idesc->name, "Savings")) ydesc->savings = idesc;
           }
      }
+   if (ydesc->savings)
+      EINA_LIST_FOREACH(ydesc->savings->subitems, itr, idesc)
+         idesc->as_saving = EINA_TRUE;
 
    success = EINA_TRUE;
 end:

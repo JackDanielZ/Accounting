@@ -3,121 +3,139 @@
 #include "common.h"
 
 static Eina_Bool
-_is_desc_item_named(Item_Desc *idesc, Eina_Stringshare *name_shr)
+_is_desc_item_named(Item_Desc *idesc, const char *name)
 {
    Eina_List *itr;
    Eina_Stringshare *nick;
    if (!idesc) return EINA_FALSE;
+   char *lname = strdup(name);
+   my_to_lower(lname, -1);
+   Eina_Stringshare *name_shr = eina_stringshare_add(lname);
+   Eina_Bool ret = EINA_TRUE;
    EINA_LIST_FOREACH(idesc->nicknames, itr, nick)
      {
-        if (nick == name_shr) return EINA_TRUE;
+        if (nick == name_shr) goto end;
      }
-   return EINA_FALSE;
-}
-
-static void
-_item_desc_find_rec(Item_Desc *cur_desc, Eina_Stringshare *categ, int depth, Eina_List **ret)
-{
-   Eina_List *itr;
-   Eina_Stringshare *nick;
-   Item_Desc *sub_desc;
-   if (!cur_desc) return;
-   EINA_LIST_FOREACH(cur_desc->nicknames, itr, nick)
-     {
-        if (nick == categ) *ret = eina_list_append(*ret, cur_desc);
-     }
-   if (!depth) return;
-   EINA_LIST_FOREACH(cur_desc->subitems, itr, sub_desc)
-     {
-        _item_desc_find_rec(sub_desc, categ, depth - 1, ret);
-     }
-}
-
-static Item_Desc *
-_item_desc_candidate_guess(Eina_List *candidates)
-{
-   Eina_List *itr, *normal_list = NULL, *other_list = NULL;
-   Item_Desc *idesc, *found = NULL;
-   int nb_other = 0, nb_normal = 0;
-   EINA_LIST_FOREACH(candidates, itr, idesc)
-     {
-        if (idesc->as_other)
-          {
-             other_list = eina_list_append(other_list, idesc);
-             nb_other++;
-          }
-        else
-          {
-             normal_list = eina_list_append(normal_list, idesc);
-             nb_normal++;
-          }
-     }
-   if (nb_normal == 1)
-     {
-        found = eina_list_data_get(normal_list);
-        goto end;
-     }
-   if (nb_normal > 1)
-     {
-        EINA_LIST_FOREACH(normal_list, itr, idesc)
-          {
-             if (!idesc->parent || !idesc->parent->parent)
-               {
-                  found = idesc;
-                  goto end;
-               }
-          }
-     }
-   if (nb_other == 1)
-     {
-        found = eina_list_data_get(other_list);
-        goto end;
-     }
-   if (nb_other > 1)
-     {
-        EINA_LIST_FOREACH(other_list, itr, idesc)
-          {
-             if (!idesc->parent || !idesc->parent->parent)
-               {
-                  found = idesc;
-                  goto end;
-               }
-          }
-     }
+   ret = EINA_FALSE;
 end:
-   eina_list_free(normal_list);
-   eina_list_free(other_list);
-   return found;
-}
-
-static Item_Desc *
-_item_desc_find(Year_Desc *ydesc, Item_Desc *pdesc, Eina_Stringshare *categ, Eina_Bool depth)
-{
-   Eina_List *cands = NULL;
-   Item_Desc *ret;
-   if (pdesc) _item_desc_find_rec(pdesc, categ, depth, &cands);
-   else
-     {
-        _item_desc_find_rec(ydesc->debits, categ, depth, &cands);
-        _item_desc_find_rec(ydesc->credits, categ, depth, &cands);
-        _item_desc_find_rec(ydesc->savings, categ, depth, &cands);
-     }
-   ret = _item_desc_candidate_guess(cands);
-   eina_list_free(cands);
+   eina_stringshare_del(name_shr);
+   free(lname);
    return ret;
 }
 
 static Item_Desc *
-_other_item_find(Year_Desc *ydesc, Item_Desc *pdesc)
+_item_desc_candidate_guess(Eina_List *normal_candidates, Eina_List *other_candidates)
 {
    Eina_List *itr;
-   if (!pdesc) pdesc = ydesc->debits;
-   if (!pdesc) return NULL;
-   EINA_LIST_FOREACH(pdesc->subitems, itr, pdesc)
+   Item_Desc *idesc;
+
+   if (normal_candidates)
      {
-        if (pdesc->as_other) return pdesc;
+        if (eina_list_count(normal_candidates) == 1) return eina_list_data_get(normal_candidates);
+        EINA_LIST_FOREACH(normal_candidates, itr, idesc)
+          {
+             if (!idesc->parent || !idesc->parent->parent) return idesc;
+          }
+        return NULL;
+     }
+
+   if (eina_list_count(other_candidates) == 1) return eina_list_data_get(other_candidates);
+   EINA_LIST_FOREACH(other_candidates, itr, idesc)
+     {
+        if (!idesc->parent || !idesc->parent->parent) return idesc;
      }
    return NULL;
+}
+
+static void
+_list_candidates(Year_Desc *ydesc, Item_Desc *cur_desc,
+      Eina_Stringshare *operation, Eina_Stringshare *category,
+      Eina_List **normal_list, Eina_List **other_list)
+{
+   Eina_List *itr;
+   Item_Desc *sub_desc;
+   if (!cur_desc) return;
+   if (!cur_desc->as_other && !cur_desc->as_saving)
+     {
+        if (operation && does_idesc_fit_name(ydesc, cur_desc, operation) &&
+              (!category
+               || does_idesc_fit_name(ydesc, cur_desc->parent, category)
+               || category == cur_desc->individual))
+           *normal_list = eina_list_append(*normal_list, cur_desc);
+
+        if (!operation && category && does_idesc_fit_name(ydesc, cur_desc, category))
+           *normal_list = eina_list_append(*normal_list, cur_desc);
+
+        EINA_LIST_FOREACH(cur_desc->subitems, itr, sub_desc)
+          {
+             _list_candidates(ydesc, sub_desc,
+                   operation, category,
+                   normal_list, other_list);
+          }
+     }
+   else if (cur_desc->as_other)
+     {
+        if (!category
+              || does_idesc_fit_name(ydesc, cur_desc->parent, category)
+              || does_idesc_fit_name(ydesc, cur_desc, category)
+              || category == cur_desc->individual)
+           *other_list = eina_list_append(*other_list, cur_desc);
+     }
+   else /* Savings */
+     {
+        if (category && does_idesc_fit_name(ydesc, cur_desc, category))
+           *other_list = eina_list_append(*other_list, cur_desc);
+     }
+}
+
+static Item_Desc *
+_find_best_idesc(Year_Desc *ydesc, const char *operation, const char *category)
+{
+   Item_Desc *idesc = NULL;
+   Eina_List *normal_candidates = NULL, *other_candidates = NULL;
+
+   char *loperation = operation?strdup(operation):NULL;
+   char *lcategory = category?strdup(category):NULL;
+   my_to_lower(loperation, -1);
+   my_to_lower(lcategory, -1);
+   Eina_Stringshare *operation_shr = eina_stringshare_add(loperation);
+   Eina_Stringshare *category_shr = eina_stringshare_add(lcategory);
+
+   _list_candidates(ydesc, ydesc->debits, operation_shr, category_shr, &normal_candidates, &other_candidates);
+   _list_candidates(ydesc, ydesc->credits, operation_shr, category_shr, &normal_candidates, &other_candidates);
+   _list_candidates(ydesc, ydesc->savings, operation_shr, category_shr, &normal_candidates, &other_candidates);
+#if 1
+   Eina_List *itr;
+   EINA_LIST_FOREACH(normal_candidates, itr, idesc)
+     {
+        printf("Normal: %s category %s individual %s\n", idesc->name,
+              idesc->parent?idesc->parent->name:"(none)",
+              idesc->individual?idesc->individual:"(none)");
+     }
+   EINA_LIST_FOREACH(other_candidates, itr, idesc)
+     {
+        printf("Other: %s category %s individual %s\n", idesc->name,
+              idesc->parent?idesc->parent->name:"(none)",
+              idesc->individual?idesc->individual:"(none)");
+     }
+#endif
+
+   idesc = _item_desc_candidate_guess(normal_candidates, other_candidates);
+#if 1
+   if (idesc)
+     {
+        printf("Best: %s category %s individual %s\n", idesc->name,
+              idesc->parent?idesc->parent->name:"(none)",
+              idesc->individual?idesc->individual:"(none)");
+     }
+   printf("\n");
+#endif
+
+   eina_stringshare_del(category_shr);
+   eina_stringshare_del(operation_shr);
+   free(lcategory);
+   free(loperation);
+   return idesc;
 }
 
 static Eina_Bool
@@ -129,9 +147,9 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
     * reverse extract destination (should be at the end) @... if exists
     * stringshare destination and operation and look into items names
     */
-   Month_Item *parent_mitem = NULL;
-   Eina_Stringshare *chunk_shr = NULL;
-   Eina_Stringshare *lchunk_shr = NULL;
+   printf("Chunk: %s\n", chunk);
+   char *categ = NULL;
+   char *categ_setting = NULL;
    Eina_Bool is_minus = EINA_FALSE;
    trailing_remove(chunk);
    float sum = 0.0;
@@ -140,102 +158,83 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    sum = atof(ptr + 1);
    *ptr = '\0';
 
-   /* Search for category */
-   if ((ptr = strchr(chunk, '@')))
+   categ = strchr(chunk, '@');
+   if (categ)
      {
-        char *end_categ = ptr + 1;
-        while (*end_categ &&
-              ((*end_categ >= 'a' && *end_categ <= 'z') ||
-               (*end_categ >= 'A' && *end_categ <= 'Z') ||
-               (*end_categ >= '0' && *end_categ <= '9')))
+        *categ = '\0';
+        categ++;
+        ptr = categ;
+        while (*ptr &&
+              ((*ptr >= 'a' && *ptr <= 'z') ||
+               (*ptr >= 'A' && *ptr <= 'Z') ||
+               (*ptr >= '0' && *ptr <= '9')))
           {
-             end_categ++;
+             ptr++;
           }
-        my_to_lower(ptr + 1, end_categ - (ptr + 1));
-        Eina_Stringshare *category = eina_stringshare_add_length(ptr + 1, end_categ - (ptr + 1));
-        Item_Desc *categ_desc = _item_desc_find(ydesc, NULL, category, -1);
-        if (!categ_desc)
-          {
-             fprintf(stderr, "Category %s not found\n", category);
-             eina_stringshare_del(category);
-             return EINA_FALSE;
-          }
-        eina_stringshare_del(category);
-        parent_mitem = month_item_find(hist, categ_desc);
-        if (*end_categ == '.')
-          {
-             end_categ++;
-             if (!strcmp(end_categ, "max"))
-               {
-                  end_categ += 3;
-                  if (parent_mitem->max)
-                    {
-                       // FIXME ERROR max already set
-                       goto ok;
-                    }
-                  parent_mitem->max = sum;
-               }
-             else if (!strcmp(end_categ, "expected"))
-               {
-                  end_categ += 8;
-                  if (parent_mitem->expected)
-                    {
-                       // FIXME ERROR expected already set
-                       goto ok;
-                    }
-                  parent_mitem->expected = sum;
-               }
-             else if (!strcmp(end_categ, "init"))
-               {
-                  end_categ += 4;
-                  if (parent_mitem->init)
-                    {
-                       // FIXME ERROR expected already set
-                       goto ok;
-                    }
-                  parent_mitem->init = sum;
-               }
-             goto ok;
-          }
-        else if (*end_categ == '+' || *end_categ == '-')
-          {
-             is_minus = (*end_categ == '-');
-          }
-        if (ptr == chunk) chunk = end_categ;
-        else *ptr = '\0';
+
+        if (*ptr == '.') categ_setting = ptr + 1;
+        else if (*ptr == '-') is_minus = EINA_TRUE;
+        *ptr = '\0';
      }
+
    trailing_remove(chunk);
-   char *lower_chunk = strdup(chunk);
-   my_to_lower(lower_chunk, -1);
-   chunk_shr = eina_stringshare_add(chunk);
-   lchunk_shr = eina_stringshare_add(lower_chunk);
-   free(lower_chunk);
-   Item_Desc *idesc = _item_desc_find(ydesc, parent_mitem ? parent_mitem->desc : NULL, lchunk_shr, -1);
-   if (!idesc)
+
+   if (*chunk && categ_setting)
      {
-        /* Is there an item for others */
-        idesc = _other_item_find(ydesc, parent_mitem ? parent_mitem->desc : NULL);
+        fprintf(stderr, "You cannot set a category while defining an operation\n");
+        return EINA_FALSE;
      }
-   if (!idesc) idesc = parent_mitem ? parent_mitem->desc : NULL;
+   if (!*chunk) chunk = NULL;
+
+   Item_Desc *idesc = _find_best_idesc(ydesc, chunk, categ);
    if (!idesc)
      {
-        /* Unknown category*/
-        fprintf(stderr, "%s cannot be found in the description file\n", lchunk_shr);
+        fprintf(stderr, "Candidate not found for %s\n", chunk?chunk:categ);
+        return EINA_FALSE;
+     }
+
+   if (idesc->as_trash) goto ok;
+   Month_Item *mitem = month_item_find(hist, idesc);
+
+   if (categ_setting)
+     {
+        if (!strcmp(categ_setting, "max"))
+          {
+             if (mitem->max)
+               {
+                  // FIXME ERROR max already set
+                  goto ok;
+               }
+             mitem->max = sum;
+          }
+        else if (!strcmp(categ_setting, "expected"))
+          {
+             if (mitem->expected)
+               {
+                  // FIXME ERROR expected already set
+                  goto ok;
+               }
+             mitem->expected = sum;
+          }
+        else if (!strcmp(categ_setting, "init"))
+          {
+             if (mitem->init)
+               {
+                  // FIXME ERROR expected already set
+                  goto ok;
+               }
+             mitem->init = sum;
+          }
         goto ok;
      }
-   if (idesc->as_trash) goto ok;
-   Month_Item *item = month_item_find(hist, idesc);
-   if (item)
-     {
-        Month_Operation *op = calloc(1, sizeof(*op));
-        op->v = sum;
-        if (!_is_desc_item_named(idesc, lchunk_shr))
-           op->name = eina_stringshare_ref(chunk_shr);
-        op->is_minus = is_minus;
-        item->ops = eina_list_append(item->ops, op);
-     }
-   eina_stringshare_del(chunk_shr);
-   eina_stringshare_del(lchunk_shr);
+
+   Month_Operation *op = calloc(1, sizeof(*op));
+   op->v = sum;
+   if (!_is_desc_item_named(idesc, chunk))
+      op->name = eina_stringshare_add(chunk);
+   op->is_minus = is_minus;
+   mitem->ops = eina_list_append(mitem->ops, op);
+
 ok:
    *val = sum;
    return EINA_TRUE;

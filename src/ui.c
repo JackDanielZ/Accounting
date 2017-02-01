@@ -108,7 +108,7 @@ _group_content_get(void *data, Evas_Object *gl, const char *part)
                           {
                              EINA_LIST_FOREACH(idesc?idesc->subitems:NULL, itr, idesc)
                                {
-                                  sum += idesc_sum_calc(hist, idesc, NULL, CALC_ALL, NULL);
+                                  sum += idesc_sum_calc(ydesc, hist, idesc, NULL, CALC_BASIC, NULL, NULL);
                                }
                           }
                         Eo *obj = elm_label_add(box);
@@ -166,7 +166,7 @@ _item_content_get(void *data, Evas_Object *gl, const char *part)
              Month_History *hist = month_hist_get(ydesc, i);
              //Month_Item *mitem = month_item_find(hist, idesc);
              float sum = 0.0;
-             if (hist) sum = idesc_sum_calc(hist, idesc, NULL, CALC_ALL, NULL);
+             if (hist) sum = idesc_sum_calc(ydesc, hist, idesc, NULL, CALC_BASIC, NULL, NULL);
              if (sum - (int)sum > 0.5) sum = (int)sum + 1;
              else sum = (int)sum;
 

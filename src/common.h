@@ -11,7 +11,8 @@ typedef enum
    CALC_POSITIVE  = 1 << 0,
    CALC_NEGATIVE  = 1 << 1,
    CALC_INIT      = 1 << 2,
-   CALC_ALL       = -1,
+   CALC_INDIVIDUALS = 1 << 3,
+   CALC_BASIC     = CALC_POSITIVE | CALC_NEGATIVE | CALC_INIT
 } Calc_Filtering;
 
 typedef struct _Item_Desc Item_Desc;
@@ -22,13 +23,16 @@ struct _Item_Desc
    Eina_List *nicknames; /* List of Eina_Stringshare */
    Eina_List *subitems;
    Item_Desc *parent;
+   Eina_Stringshare *individual; /* The individual, if defined, to which this item is assigned */
    Eina_Bool as_other : 1;
    Eina_Bool as_trash : 1;
+   Eina_Bool as_saving : 1;
 };
 
 typedef struct
 {
    int year;
+   Item_Desc *individuals;
    Item_Desc *debits;
    Item_Desc *credits;
    Item_Desc *savings;
@@ -93,9 +97,15 @@ month_item_find(Month_History *hist, Item_Desc *idesc);
 Month_History *
 month_hist_get(Year_Desc *ydesc, int month);
 
+Item_Desc *
+individual_find(Year_Desc *ydesc, Eina_Stringshare *name);
+
+Eina_Bool
+does_idesc_fit_name(Year_Desc *ydesc, Item_Desc *idesc, Eina_Stringshare *name);
+
 float
-idesc_sum_calc(Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter,
-      float *expected);
+idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter,
+      Eina_Stringshare *individual, float *expected);
 
 #define ERROR_PRINT(l, s) \
 { \
