@@ -27,24 +27,25 @@ static Item_Desc *
 _item_desc_candidate_guess(Eina_List *normal_candidates, Eina_List *other_candidates)
 {
    Eina_List *itr;
-   Item_Desc *idesc;
+   Item_Desc *idesc, *found = NULL;
 
    if (normal_candidates)
      {
-        if (eina_list_count(normal_candidates) == 1) return eina_list_data_get(normal_candidates);
+        if (eina_list_count(normal_candidates) == 1) found = eina_list_data_get(normal_candidates);
         EINA_LIST_FOREACH(normal_candidates, itr, idesc)
           {
-             if (!idesc->parent || !idesc->parent->parent) return idesc;
+             if (found) continue;
+             if (!idesc->parent || !idesc->parent->parent) found = idesc;
           }
-        return NULL;
      }
 
-   if (eina_list_count(other_candidates) == 1) return eina_list_data_get(other_candidates);
+   if (!found && eina_list_count(other_candidates) == 1) found = eina_list_data_get(other_candidates);
    EINA_LIST_FOREACH(other_candidates, itr, idesc)
      {
-        if (!idesc->parent || !idesc->parent->parent) return idesc;
+        if (found) continue;
+        if (!idesc->parent || !idesc->parent->parent) found = idesc;
      }
-   return NULL;
+   return found;
 }
 
 static void
