@@ -20,7 +20,7 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
    if (nb_children)
       fprintf(fp, "      <button %s onclick=\"toggleRow(this);\">+</button>",
             !nb_children ? " style=\"display:none;\"":"");
-   fprintf(fp, "      </th><th>%s", idesc->name);
+   fprintf(fp, "      </th><th style=\"text-indent:%dpx\">%s", level*20, idesc->name);
    if (idesc->individual)
      {
         Item_Desc *ind_desc = individual_find(ydesc, idesc->individual);
