@@ -252,6 +252,7 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
     */
    Eina_Bool success = EINA_FALSE;
    Eina_Bool equal_required = EINA_FALSE;
+   Eina_Bool parenthesis_required = EINA_FALSE;
    float line_sum = 0.0;
    Lexer l;
    l.buffer = buffer;
@@ -262,25 +263,19 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
 
    do
      {
-        char *chunk = chunk_get(&l, EINA_FALSE, '\n', '&', '=', '\0');
-        if (chunk)
+        if (is_next_token(&l, "("))
           {
-             float val = 0.0;
-             if (!_chunk_handle(chunk, ydesc, hist, &val))
+             parenthesis_required = EINA_TRUE;
+             is_next_token(&l, "\n");
+          }
+        else if (is_next_token(&l, ")"))
+          {
+             if (!parenthesis_required)
                {
-                  ERROR_PRINT(&l, "Chunk error");
-                  fprintf(stderr, "%s\n", chunk);
+                  ERROR_PRINT(&l, "Unexpected parenthesis");
                   return EINA_FALSE;
                }
-             line_sum += val;
-          }
-        else goto end;
-        if (is_next_token(&l, "&"))
-          {
-             equal_required = EINA_TRUE;
-          }
-        else if (is_next_token(&l, "="))
-          {
+
              float given_sum = next_number(&l);
              if ((abs)(given_sum - line_sum) > 0.01)
                {
@@ -288,18 +283,51 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
                   fprintf(stderr, "Given %.2f Expected %.2f\n", given_sum, line_sum);
                   return EINA_FALSE;
                }
-             equal_required = EINA_FALSE;
+             parenthesis_required = EINA_FALSE;
              line_sum = 0.0;
+             is_next_token(&l, "\n");
           }
         else
           {
-             if (equal_required)
+             char *chunk = chunk_get(&l, EINA_FALSE, '\n', '&', '=', '\0');
+             if (chunk)
                {
-                  ERROR_PRINT(&l, "'=' required");
-                  return EINA_FALSE;
+                  float val = 0.0;
+                  if (!_chunk_handle(chunk, ydesc, hist, &val))
+                    {
+                       ERROR_PRINT(&l, "Chunk error");
+                       fprintf(stderr, "%s\n", chunk);
+                       return EINA_FALSE;
+                    }
+                  line_sum += val;
                }
-             is_next_token(&l, "\n");
-             line_sum = 0.0;
+             else goto end;
+             if (is_next_token(&l, "&"))
+               {
+                  equal_required = EINA_TRUE;
+               }
+             else if (is_next_token(&l, "="))
+               {
+                  float given_sum = next_number(&l);
+                  if ((abs)(given_sum - line_sum) > 0.01)
+                    {
+                       ERROR_PRINT(&l, "Incorrect sum");
+                       fprintf(stderr, "Given %.2f Expected %.2f\n", given_sum, line_sum);
+                       return EINA_FALSE;
+                    }
+                  equal_required = EINA_FALSE;
+                  line_sum = 0.0;
+               }
+             else
+               {
+                  if (equal_required)
+                    {
+                       ERROR_PRINT(&l, "'=' required");
+                       return EINA_FALSE;
+                    }
+                  is_next_token(&l, "\n");
+                  if (!parenthesis_required) line_sum = 0.0;
+               }
           }
      }
    while (1);
