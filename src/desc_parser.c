@@ -90,11 +90,15 @@ desc_parse(const char *buffer)
      {
         while (!is_next_token(&l, "}"))
           {
-             idesc = _item_parse(&l, NULL);
-             if (!strcmp(idesc->name, "Individuals")) ydesc->individuals = idesc;
-             if (!strcmp(idesc->name, "Debits")) ydesc->debits = idesc;
-             if (!strcmp(idesc->name, "Credits")) ydesc->credits = idesc;
-             if (!strcmp(idesc->name, "Savings")) ydesc->savings = idesc;
+             if (is_next_token(&l, "@inherit_remainings")) ydesc->inherit_remainings = EINA_TRUE;
+             else
+               {
+                  idesc = _item_parse(&l, NULL);
+                  if (!strcmp(idesc->name, "Individuals")) ydesc->individuals = idesc;
+                  if (!strcmp(idesc->name, "Debits")) ydesc->debits = idesc;
+                  if (!strcmp(idesc->name, "Credits")) ydesc->credits = idesc;
+                  if (!strcmp(idesc->name, "Savings")) ydesc->savings = idesc;
+               }
           }
      }
    if (ydesc->savings)

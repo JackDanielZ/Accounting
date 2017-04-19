@@ -37,6 +37,7 @@ typedef struct
    Item_Desc *credits;
    Item_Desc *savings;
    Eina_List *months;
+   Eina_Bool inherit_remainings : 1;
 
    void *ui_data;
 } Year_Desc;

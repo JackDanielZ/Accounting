@@ -69,6 +69,7 @@ html_generate(Year_Desc *ydesc, const char *output)
    FILE *fp = fopen(output, "w");
    int m;
    char *buffer = file_get_as_string(PACKAGE_DATA_DIR"header_html");
+   float last_rem = 0.0;
    Eina_List *itr;
    Item_Desc *idesc;
 
@@ -88,7 +89,7 @@ html_generate(Year_Desc *ydesc, const char *output)
    if (ydesc->individuals)
       fprintf(fp, "      <button onclick=\"toggleRow(this);\">+</button>");
    fprintf(fp, "</th><th>Remaining</th>\n");
-   for (m = 0; m < 12; m++)
+   for (m = 0, last_rem = 0.0; m < 12; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);
         float credits, sum = 0.0, expected_debits = 0.0;
@@ -99,7 +100,9 @@ html_generate(Year_Desc *ydesc, const char *output)
              credits = idesc_sum_calc(ydesc, hist, ydesc->credits, NULL, CALC_BASIC | CALC_INDIVIDUALS, NULL, NULL);
              all_debits = idesc_sum_calc(ydesc, hist, ydesc->debits, NULL, CALC_BASIC | CALC_INDIVIDUALS, NULL, &expected_debits);
              all_savings = idesc_sum_calc(ydesc, hist, ydesc->savings, NULL, CALC_POSITIVE | CALC_INDIVIDUALS, NULL, NULL);
-             sum = credits - all_debits - all_savings;
+             if (ydesc->inherit_remainings) sum = last_rem;
+             sum += credits - all_debits - all_savings;
+             last_rem = sum;
           }
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         if (expected_debits - (int)expected_debits > 0.5) expected_debits = (int)expected_debits + 1;
@@ -114,7 +117,7 @@ html_generate(Year_Desc *ydesc, const char *output)
      {
         fprintf(fp, "   <tr class=\"d%d\" expanded=0 level=0>\n      <th></th><th>%s</th>\n",
               _row_number++ % 2, idesc->name);
-        for (m = 0; m < 12; m++)
+        for (m = 0, last_rem = 0.0; m < 12; m++)
           {
              Month_History *hist = month_hist_get(ydesc, m);
              float sum = 0.0;
@@ -130,8 +133,10 @@ html_generate(Year_Desc *ydesc, const char *output)
                         NULL, CALC_BASIC, idesc->name, NULL);
                   float own_savings = idesc_sum_calc(ydesc, hist, ydesc->savings,
                         NULL, CALC_POSITIVE, idesc->name, NULL);
-                  sum = own_credits - (common_debits / 2) - (common_savings / 2) -
+                  if (ydesc->inherit_remainings) sum = last_rem;
+                  sum += own_credits - (common_debits / 2) - (common_savings / 2) -
                      own_debits - own_savings;
+                  last_rem = sum;
                }
              fprintf(fp, "      <td>%d</td>\n", (int)sum);
           }
