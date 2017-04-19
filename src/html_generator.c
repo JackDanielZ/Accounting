@@ -52,7 +52,7 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
           }
         else
           {
-             fprintf(fp, ">");
+             fprintf(fp, ">0");
           }
         fprintf(fp, "</td>\n");
      }
