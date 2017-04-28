@@ -58,14 +58,29 @@ _list_candidates(Year_Desc *ydesc, Item_Desc *cur_desc,
    if (!cur_desc) return;
    if (!cur_desc->as_other && !cur_desc->as_saving)
      {
-        if (operation && does_idesc_fit_name(ydesc, cur_desc, operation) &&
-              (!category
-               || does_idesc_fit_name(ydesc, cur_desc->parent, category)
-               || category == cur_desc->individual))
-           *normal_list = eina_list_append(*normal_list, cur_desc);
+        if (operation)
+          {
+             if (does_idesc_fit_name(ydesc, cur_desc, operation))
+               {
+                  if (!category
+                        || does_idesc_fit_name(ydesc, cur_desc->parent, category)
+                        || category == cur_desc->individual)
+                     *normal_list = eina_list_append(*normal_list, cur_desc);
+               }
+             else
+               {
+                  /* e.g Conversion @Bank 300 */
+                  if (category && !cur_desc->subitems && does_idesc_fit_name(ydesc, cur_desc, category))
+                     *normal_list = eina_list_append(*normal_list, cur_desc);
+               }
+          }
+        else
+          {
+             /* e.g SV.init 40 */
+             if (category && does_idesc_fit_name(ydesc, cur_desc, category))
+                *normal_list = eina_list_append(*normal_list, cur_desc);
+          }
 
-        if (!operation && category && does_idesc_fit_name(ydesc, cur_desc, category))
-           *normal_list = eina_list_append(*normal_list, cur_desc);
 
         EINA_LIST_FOREACH(cur_desc->subitems, itr, sub_desc)
           {
