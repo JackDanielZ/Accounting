@@ -169,6 +169,11 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    Eina_Bool is_minus = EINA_FALSE;
    trailing_remove(chunk);
    float sum = 0.0;
+   if (!strcmp(chunk, "@simulation"))
+     {
+        hist->simulation = EINA_TRUE;
+        goto ok;
+     }
    char *ptr = strrchr(chunk, ' '); /* Look for sum */
    if (!ptr) goto ok;
    sum = atof(ptr + 1);

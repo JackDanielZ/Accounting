@@ -41,9 +41,10 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
         fprintf(fp, "      <td title=\"%s\"", eina_strbuf_string_get(tooltip));
         if (mitem)
           {
+             Eina_Bool italic = mitem->expected || (hist && hist->simulation);
              fprintf(fp, "%s>%s%d%s",
                    mitem->max && sum > mitem->max ?"style=\"color:red\"><b" : "",
-                   mitem->expected?"<i>":"", (int)sum, mitem->expected?"</i>":"");
+                   italic?"<i>":"", (int)sum, italic?"</i>":"");
              if (mitem->max)
                {
                   fprintf(fp, " / %d", (int)mitem->max);
@@ -94,6 +95,7 @@ html_generate(Year_Desc *ydesc, const char *output)
         Month_History *hist = month_hist_get(ydesc, m);
         float credits, sum = 0.0, expected_debits = 0.0;
         float all_debits, all_savings;
+        Eina_Bool italic = hist && hist->simulation;
         if (hist)
           {
              /* Credits + debits - savings (only the savings, i.e positive, not the expenses */
@@ -107,10 +109,10 @@ html_generate(Year_Desc *ydesc, const char *output)
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         if (expected_debits - (int)expected_debits > 0.5) expected_debits = (int)expected_debits + 1;
         else sum = (int)sum;
-        if (!expected_debits)
-           fprintf(fp, "      <td>%d</td>\n", (int)sum);
-        else
-           fprintf(fp, "      <td>%d (-%d)</td>\n", (int)sum, (int)expected_debits);
+        fprintf(fp, "      <td>%s%d",
+              italic ? "<i>": "", (int)sum);
+        if (expected_debits) fprintf(fp, "(-%d)", (int)expected_debits);
+        fprintf(fp, "%s</td>", italic ? "</i>": "");
      }
    fprintf(fp, "   </tr>\n");
    EINA_LIST_FOREACH(ydesc->individuals?ydesc->individuals->subitems:NULL, itr, idesc)
@@ -121,6 +123,7 @@ html_generate(Year_Desc *ydesc, const char *output)
           {
              Month_History *hist = month_hist_get(ydesc, m);
              float sum = 0.0;
+             Eina_Bool italic = hist && hist->simulation;
              if (hist)
                {
                   float own_credits = idesc_sum_calc(ydesc, hist, ydesc->credits,
@@ -138,7 +141,8 @@ html_generate(Year_Desc *ydesc, const char *output)
                      own_debits - own_savings;
                   last_rem = sum;
                }
-             fprintf(fp, "      <td>%d</td>\n", (int)sum);
+             fprintf(fp, "      <td>%s%d%s</td>\n",
+                   italic ? "<i>": "", (int)sum, italic ? "</i>": "");
           }
         fprintf(fp, "   </tr>\n");
      }

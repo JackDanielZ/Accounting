@@ -62,6 +62,7 @@ typedef struct
 {
    int month;
    Eina_List *items;
+   Eina_Bool simulation : 1;
 } Month_History;
 
 typedef struct
