@@ -32,6 +32,7 @@ struct _Item_Desc
 typedef struct
 {
    int year;
+   char *files_dir;
    Item_Desc *individuals;
    Item_Desc *debits;
    Item_Desc *credits;

@@ -24,7 +24,7 @@ EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
    char history_file[256];
-   char *buffer, *dir;
+   char *buffer;
    int m, opt, gen_what = GEN_UI, ret = 0;
    Eina_Bool help = EINA_FALSE;
    eina_init();
@@ -75,10 +75,10 @@ elm_main(int argc, char **argv)
    Year_Desc *ydesc = desc_parse(buffer);
    free(buffer);
 
-   dir = dirname(desc_file);
+   ydesc->files_dir = dirname(desc_file);
    for (m = 0; m < 12; m++)
      {
-        sprintf(history_file, "%s/History_%d_%.2d.txt", dir, ydesc->year, m + 1);
+        sprintf(history_file, "%s/History_%d_%.2d.txt", ydesc->files_dir, ydesc->year, m + 1);
         buffer = file_get_as_string(history_file);
         if (buffer)
           {

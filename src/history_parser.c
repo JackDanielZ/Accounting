@@ -3,6 +3,9 @@
 #include "common.h"
 
 static Eina_Bool
+_hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc);
+
+static Eina_Bool
 _is_desc_item_named(Item_Desc *idesc, const char *name)
 {
    Eina_List *itr;
@@ -174,6 +177,15 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
         hist->simulation = EINA_TRUE;
         goto ok;
      }
+   if (!strncmp(chunk, "@import", 7))
+     {
+        char history_file[256];
+        chunk += 8;
+        sprintf(history_file, "%s/%s", ydesc->files_dir, chunk);
+        char *buffer = file_get_as_string(history_file);
+        if (!_hist_parse(buffer, hist, ydesc)) return EINA_FALSE;
+        goto ok;
+     }
    char *ptr = strrchr(chunk, ' '); /* Look for sum */
    if (!ptr) goto ok;
    sum = atof(ptr + 1);
@@ -261,8 +273,8 @@ ok:
    return EINA_TRUE;
 }
 
-Eina_Bool
-history_parse(const char *buffer, int month, Year_Desc *ydesc)
+static Eina_Bool
+_hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
 {
    /*
     * if token == (
@@ -277,9 +289,6 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
    Lexer l;
    l.buffer = buffer;
    lexer_reset(&l);
-
-   Month_History *hist = calloc(1, sizeof(*hist));
-   hist->month = month;
 
    do
      {
@@ -365,3 +374,10 @@ error:
    return EINA_TRUE;
 }
 
+Eina_Bool
+history_parse(const char *buffer, int month, Year_Desc *ydesc)
+{
+   Month_History *hist = calloc(1, sizeof(*hist));
+   hist->month = month;
+   return _hist_parse(buffer, hist, ydesc);
+}
