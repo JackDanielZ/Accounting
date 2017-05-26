@@ -111,7 +111,7 @@ html_generate(Year_Desc *ydesc, const char *output)
         else sum = (int)sum;
         fprintf(fp, "      <td>%s%d",
               italic ? "<i>": "", (int)sum);
-        if (expected_debits) fprintf(fp, "(-%d)", (int)expected_debits);
+        if (expected_debits) fprintf(fp, "(-%d -> %d)", (int)expected_debits, (int)(sum - expected_debits));
         fprintf(fp, "%s</td>", italic ? "</i>": "");
      }
    fprintf(fp, "   </tr>\n");
