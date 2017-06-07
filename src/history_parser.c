@@ -167,7 +167,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
     * stringshare destination and operation and look into items names
     */
    printf("Chunk: %s\n", chunk);
-   char *categ = NULL;
+   char *categ = NULL, *comment;
    char *categ_setting = NULL;
    Eina_Bool is_minus = EINA_FALSE;
    trailing_remove(chunk);
@@ -191,6 +191,16 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    sum = atof(ptr + 1);
    *ptr = '\0';
 
+   trailing_remove(chunk);
+   comment = strstr(chunk, "--");
+   if (comment)
+     {
+        *comment = '\0';
+        comment += 2;
+        while (*comment && *comment == ' ') comment++;
+     }
+
+   trailing_remove(chunk);
    categ = strchr(chunk, '@');
    if (categ)
      {
@@ -265,6 +275,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    op->v = sum;
    if (!_is_desc_item_named(idesc, chunk))
       op->name = eina_stringshare_add(chunk);
+   op->comment = comment?eina_stringshare_add(comment):NULL;
    op->is_minus = is_minus;
    mitem->ops = eina_list_append(mitem->ops, op);
 

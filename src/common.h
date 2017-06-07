@@ -46,6 +46,7 @@ typedef struct
 typedef struct
 {
    Eina_Stringshare *name; /* Only for other */
+   Eina_Stringshare *comment;
    float v;
    Eina_Bool is_minus : 1;
 } Month_Operation;

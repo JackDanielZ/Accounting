@@ -325,8 +325,13 @@ idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc,
                {
                   float op_sum = (op->v * (op->is_minus ? -1 : 1));
                   sum += op_sum;
-                  if (tooltip) eina_strbuf_append_printf(tooltip, "%s%s%.2f\n",
-                        op->name?op->name:"", op->name?": ":"", op_sum);
+                  if (tooltip)
+                    {
+                       eina_strbuf_append_printf(tooltip, "%.2f", op_sum);
+                       if (op->name) eina_strbuf_append_printf(tooltip, ": %s", op->name);
+                       if (op->comment) eina_strbuf_append_printf(tooltip, " (%s)", op->comment);
+                       eina_strbuf_append_printf(tooltip, "\n");
+                    }
                }
           }
      }
