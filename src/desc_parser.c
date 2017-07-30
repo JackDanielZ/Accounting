@@ -1,15 +1,13 @@
-#include <Eina.h>
-
 #include "common.h"
 
-static Eina_List *_items_parse(Lexer *l, Item_Desc *parent);
+static List *_items_parse(Lexer *l, Item_Desc *parent);
 
 static Item_Desc *
 _item_parse(Lexer *l, Item_Desc *parent)
 {
    Item_Desc *idesc = NULL;
-   char *elt = next_word(l, " ", EINA_TRUE);
-   Eina_Bool end = !elt;
+   char *elt = next_word(l, " ", 1);
+   int end = !elt;
    while (!end)
      {
         if (!idesc)
@@ -19,54 +17,55 @@ _item_parse(Lexer *l, Item_Desc *parent)
           }
         if (elt)
           {
+             char *p;
              trailing_remove(elt);
-             if (!idesc->name) idesc->name = eina_stringshare_add(elt);
-             eina_str_tolower(&elt);
-             Eina_Stringshare *shr = eina_stringshare_add(elt);
+             if (!idesc->name) idesc->name = strdup(elt);
+             for (p = elt; (*p); p++) *p = tolower((unsigned char )(*p));
+             char *shr = strdup(elt);
              free(elt);
-             idesc->nicknames = eina_list_append(idesc->nicknames, shr);
+             idesc->nicknames = list_append(idesc->nicknames, shr);
           }
         if (is_next_token(l, "@or"))
           {
-             elt = next_word(l, " ", EINA_TRUE);
+             elt = next_word(l, " ", 1);
           }
         else if (is_next_token(l, "@other"))
           {
-             idesc->as_other = EINA_TRUE;
+             idesc->as_other = 1;
              elt = NULL;
           }
         else if (is_next_token(l, "@trash"))
           {
-             idesc->as_trash = EINA_TRUE;
+             idesc->as_trash = 1;
              elt = NULL;
           }
         else if (is_next_token(l, "@"))
           {
-             char *individual = next_word(l, "", EINA_TRUE);
-             eina_str_tolower(&individual);
-             idesc->individual = eina_stringshare_add(individual);
-             end = EINA_TRUE;
+             char *individual = next_word(l, "", 1), *p;
+             for (p = individual; (*p); p++) *p = tolower((unsigned char )(*p));
+             idesc->individual = strdup(individual);
+             end = 1;
              free(individual);
           }
         else
           {
              idesc->subitems = _items_parse(l, idesc);
-             end = EINA_TRUE;
+             end = 1;
           }
      }
    return idesc;
 }
 
-static Eina_List *
+static List *
 _items_parse(Lexer *l, Item_Desc *parent)
 {
-   Eina_List *lst = NULL;
+   List *lst = NULL;
    if (is_next_token(l, "{"))
      {
         while (!is_next_token(l, "}"))
           {
              Item_Desc *idesc = _item_parse(l, parent);
-             if (idesc) lst = eina_list_append(lst, idesc);
+             if (idesc) lst = list_append(lst, idesc);
           }
      }
    return lst;
@@ -76,8 +75,8 @@ Year_Desc *
 desc_parse(const char *buffer)
 {
    Item_Desc *idesc;
-   Eina_List *itr;
-   Eina_Bool success = EINA_FALSE;
+   List *itr;
+   int success = 0;
    Lexer l;
    l.buffer = buffer;
    lexer_reset(&l);
@@ -90,7 +89,7 @@ desc_parse(const char *buffer)
      {
         while (!is_next_token(&l, "}"))
           {
-             if (is_next_token(&l, "@inherit_remainings")) ydesc->inherit_remainings = EINA_TRUE;
+             if (is_next_token(&l, "@inherit_remainings")) ydesc->inherit_remainings = 1;
              else
                {
                   idesc = _item_parse(&l, NULL);
@@ -102,10 +101,10 @@ desc_parse(const char *buffer)
           }
      }
    if (ydesc->savings)
-      EINA_LIST_FOREACH(ydesc->savings->subitems, itr, idesc)
-         idesc->as_saving = EINA_TRUE;
+      LIST_FOREACH(ydesc->savings->subitems, itr, idesc)
+         idesc->as_saving = 1;
 
-   success = EINA_TRUE;
+   success = 1;
 end:
    if (!success)
      {

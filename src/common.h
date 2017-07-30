@@ -1,8 +1,13 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#include <Eina.h>
-#include <Eo.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdarg.h>
+
+#include "list.h"
 
 #define ERR(fmt, ...) fprintf(stderr, fmt"\n", ## __VA_ARGS__)
 
@@ -19,14 +24,14 @@ typedef struct _Item_Desc Item_Desc;
 
 struct _Item_Desc
 {
-   Eina_Stringshare *name;
-   Eina_List *nicknames; /* List of Eina_Stringshare */
-   Eina_List *subitems;
+   const char *name;
+   List *nicknames; /* List of Eina_Stringshare */
+   List *subitems;
    Item_Desc *parent;
-   Eina_Stringshare *individual; /* The individual, if defined, to which this item is assigned */
-   Eina_Bool as_other : 1;
-   Eina_Bool as_trash : 1;
-   Eina_Bool as_saving : 1;
+   const char *individual; /* The individual, if defined, to which this item is assigned */
+   int as_other : 1;
+   int as_trash : 1;
+   int as_saving : 1;
 };
 
 typedef struct
@@ -37,24 +42,24 @@ typedef struct
    Item_Desc *debits;
    Item_Desc *credits;
    Item_Desc *savings;
-   Eina_List *months;
-   Eina_Bool inherit_remainings : 1;
+   List *months;
+   int inherit_remainings : 1;
 
    void *ui_data;
 } Year_Desc;
 
 typedef struct
 {
-   Eina_Stringshare *name; /* Only for other */
-   Eina_Stringshare *comment;
+   const char *name; /* Only for other */
+   const char *comment;
    float v;
-   Eina_Bool is_minus : 1;
+   int is_minus : 1;
 } Month_Operation;
 
 typedef struct
 {
    Item_Desc *desc;
-   Eina_List *ops;
+   List *ops;
    float max;
    float expected;
    float init;
@@ -63,8 +68,8 @@ typedef struct
 typedef struct
 {
    int month;
-   Eina_List *items;
-   Eina_Bool simulation : 1;
+   List *items;
+   int simulation : 1;
 } Month_History;
 
 typedef struct
@@ -81,13 +86,13 @@ void lexer_reset(Lexer *l);
 
 void ws_skip(Lexer *l);
 
-Eina_Bool is_next_token(Lexer *l, const char *token);
+int is_next_token(Lexer *l, const char *token);
 
-char *next_word(Lexer *l, const char *special, Eina_Bool special_allowed);
+char *next_word(Lexer *l, const char *special, int special_allowed);
 
 float next_number(Lexer *l);
 
-char *chunk_get(Lexer *l, Eina_Bool include, char token, ...);
+char *chunk_get(Lexer *l, int include, char token, ...);
 
 void error_print(Lexer *l, const char *error_str);
 
@@ -102,14 +107,13 @@ Month_History *
 month_hist_get(Year_Desc *ydesc, int month);
 
 Item_Desc *
-individual_find(Year_Desc *ydesc, Eina_Stringshare *name);
+individual_find(Year_Desc *ydesc, const char *name);
 
-Eina_Bool
-does_idesc_fit_name(Year_Desc *ydesc, Item_Desc *idesc, Eina_Stringshare *name);
+int
+does_idesc_fit_name(Year_Desc *ydesc, Item_Desc *idesc, const char *name);
 
 float
-idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc, Eina_Strbuf *tooltip, Calc_Filtering filter,
-      Eina_Stringshare *individual, float *expected);
+idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc, char *tooltip, Calc_Filtering filter, const char *individual, float *expected);
 
 #define ERROR_PRINT(l, s) \
 { \
@@ -118,7 +122,7 @@ idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc, Eina_Str
 
 Year_Desc *desc_parse(const char *buffer);
 
-Eina_Bool history_parse(const char *buffer, int month, Year_Desc *ydesc);
+int history_parse(const char *buffer, int month, Year_Desc *ydesc);
 
 int pdf_generate(Year_Desc *ydesc, const char *output);
 

@@ -1,5 +1,3 @@
-#include <Eina.h>
-
 #include "common.h"
 
 extern const char *_months[];
@@ -9,9 +7,9 @@ static int _row_number = 0;
 static void
 _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
 {
-   Eina_List *itr;
+   List *itr;
    if (!idesc) return;
-   int m, nb_children = eina_list_count(idesc->subitems);
+   int m, nb_children = list_count(idesc->subitems);
    if (idesc->as_trash) return;
    fprintf(fp, "   <tr class=\"d%d\" expanded=0 level=%d%s>\n",
          _row_number++ % 2,
@@ -33,15 +31,16 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
         Month_History *hist = month_hist_get(ydesc, m);
         Month_Item *mitem = month_item_find(hist, idesc);
         float sum = 0.0, expected = 0.0;
-        Eina_Strbuf *tooltip = eina_strbuf_new();
+        char *tooltip = malloc(10000);
+        *tooltip = '\0';
         if (hist) sum = idesc_sum_calc(ydesc, hist, idesc, tooltip, CALC_BASIC | CALC_INDIVIDUALS, NULL, &expected);
         if (sum - (int)sum > 0.5) sum = (int)sum + 1;
         else sum = (int)sum;
 
-        fprintf(fp, "      <td title=\"%s\"", eina_strbuf_string_get(tooltip));
+        fprintf(fp, "      <td title=\"%s\"", tooltip);
         if (mitem)
           {
-             Eina_Bool italic = mitem->expected || (hist && hist->simulation);
+             int italic = mitem->expected || (hist && hist->simulation);
              fprintf(fp, "%s>%s%d%s",
                    mitem->max && sum > mitem->max ?"style=\"color:red\"><b" : "",
                    italic?"<i>":"", (int)sum, italic?"</i>":"");
@@ -58,7 +57,7 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
         fprintf(fp, "</td>\n");
      }
    fprintf(fp, "   </tr>\n");
-   EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
+   LIST_FOREACH(idesc->subitems, itr, idesc)
      {
         _item_generate(fp, ydesc, idesc, level + 1);
      }
@@ -71,7 +70,7 @@ html_generate(Year_Desc *ydesc, const char *output)
    int m;
    char *buffer = file_get_as_string(PACKAGE_DATA_DIR"header_html");
    float last_rem = 0.0;
-   Eina_List *itr;
+   List *itr;
    Item_Desc *idesc;
 
    fprintf(fp, buffer);
@@ -95,7 +94,7 @@ html_generate(Year_Desc *ydesc, const char *output)
         Month_History *hist = month_hist_get(ydesc, m);
         float credits, sum = 0.0, expected_debits = 0.0;
         float all_debits, all_savings;
-        Eina_Bool italic = hist && hist->simulation;
+        int italic = hist && hist->simulation;
         if (hist)
           {
              /* Credits + debits - savings (only the savings, i.e positive, not the expenses */
@@ -115,7 +114,7 @@ html_generate(Year_Desc *ydesc, const char *output)
         fprintf(fp, "%s</td>", italic ? "</i>": "");
      }
    fprintf(fp, "   </tr>\n");
-   EINA_LIST_FOREACH(ydesc->individuals?ydesc->individuals->subitems:NULL, itr, idesc)
+   LIST_FOREACH(ydesc->individuals?ydesc->individuals->subitems:NULL, itr, idesc)
      {
         fprintf(fp, "   <tr class=\"d%d\" expanded=0 level=0>\n      <th></th><th>%s</th>\n",
               _row_number++ % 2, idesc->name);
@@ -123,7 +122,7 @@ html_generate(Year_Desc *ydesc, const char *output)
           {
              Month_History *hist = month_hist_get(ydesc, m);
              float sum = 0.0;
-             Eina_Bool italic = hist && hist->simulation;
+             int italic = hist && hist->simulation;
              if (hist)
                {
                   float own_credits = idesc_sum_calc(ydesc, hist, ydesc->credits,

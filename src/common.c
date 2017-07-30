@@ -1,7 +1,5 @@
 #include "common.h"
 
-#include <ctype.h>
-
 const char *_months[] =
 {
    "January", "February", "March",
@@ -84,7 +82,7 @@ ws_skip(Lexer *l)
    while (1);
 }
 
-Eina_Bool
+int
 is_next_token(Lexer *l, const char *token)
 {
    ws_skip(l);
@@ -92,13 +90,13 @@ is_next_token(Lexer *l, const char *token)
      {
         l->current += strlen(token);
         l->offset += strlen(token);
-        return EINA_TRUE;
+        return 1;
      }
-   return EINA_FALSE;
+   return 0;
 }
 
 char *
-next_word(Lexer *l, const char *special, Eina_Bool special_allowed)
+next_word(Lexer *l, const char *special, int special_allowed)
 {
    if (!special) special = "";
    ws_skip(l);
@@ -136,7 +134,7 @@ next_number(Lexer *l)
 }
 
 char *
-chunk_get(Lexer *l, Eina_Bool include, char token, ...)
+chunk_get(Lexer *l, int include, char token, ...)
 {
    va_list list;
    ws_skip(l);
@@ -202,24 +200,24 @@ Month_Item *
 month_item_find(Month_History *hist, Item_Desc *idesc)
 {
    Month_Item *item;
-   Eina_List *itr;
+   List *itr;
    if (!hist) return NULL;
-   EINA_LIST_FOREACH(hist->items, itr, item)
+   LIST_FOREACH(hist->items, itr, item)
      {
         if (item->desc == idesc) return item;
      }
    item = calloc(1, sizeof(*item));
    item->desc = idesc;
-   hist->items = eina_list_append(hist->items, item);
+   hist->items = list_append(hist->items, item);
    return item;
 }
 
 Month_History *
 month_hist_get(Year_Desc *ydesc, int month)
 {
-   Eina_List *itr;
+   List *itr;
    Month_History *hist = NULL;
-   EINA_LIST_FOREACH(ydesc->months, itr, hist)
+   LIST_FOREACH(ydesc->months, itr, hist)
      {
         if (hist->month == month) return hist;
      }
@@ -227,65 +225,65 @@ month_hist_get(Year_Desc *ydesc, int month)
 }
 
 Item_Desc *
-individual_find(Year_Desc *ydesc, Eina_Stringshare *name)
+individual_find(Year_Desc *ydesc, const char *name)
 {
-   Eina_List *itr, *itr2, *l = ydesc->individuals ? ydesc->individuals->subitems : NULL;
+   List *itr, *itr2, *l = ydesc->individuals ? ydesc->individuals->subitems : NULL;
    Item_Desc *individual;
    if (!name) return NULL;
-   EINA_LIST_FOREACH(l, itr, individual)
+   LIST_FOREACH(l, itr, individual)
      {
-        Eina_Stringshare *ind_name;
-        if (individual->name == name) return individual;
-        EINA_LIST_FOREACH(individual->nicknames, itr2, ind_name)
+        const char *ind_name;
+        if (!strcmp(individual->name, name)) return individual;
+        LIST_FOREACH(individual->nicknames, itr2, ind_name)
           {
-             if (ind_name == name) return individual;
+             if (!strcmp(ind_name, name)) return individual;
           }
      }
    return NULL;
 }
 
-Eina_Bool
-does_idesc_fit_name(Year_Desc *ydesc, Item_Desc *idesc, Eina_Stringshare *name)
+int
+does_idesc_fit_name(Year_Desc *ydesc, Item_Desc *idesc, const char *name)
 {
-   Eina_List *itr;
-   Eina_Stringshare *nick;
+   List *itr;
+   const char *nick;
    Item_Desc *ind_name = individual_find(ydesc, name);
-   EINA_LIST_FOREACH(idesc->nicknames, itr, nick)
+   LIST_FOREACH(idesc->nicknames, itr, nick)
      {
         Item_Desc *ind_nick = individual_find(ydesc, nick);
-        if (nick == name || (ind_name && ind_name == ind_nick))
+        if (!strcmp(nick, name) || (ind_name && ind_name == ind_nick))
           {
-             return EINA_TRUE;
+             return 1;
           }
      }
-   return EINA_FALSE;
+   return 0;
 }
 
-static Eina_Bool
-_does_idesc_fit_individual(Year_Desc *ydesc, Item_Desc *idesc, Eina_Stringshare *name)
+static int
+_does_idesc_fit_individual(Year_Desc *ydesc, Item_Desc *idesc, const char *name)
 {
    Item_Desc *ind_name = individual_find(ydesc, name);
-   Eina_Bool ind_nick_found = EINA_FALSE;
+   int ind_nick_found = 0;
    if (idesc->individual)
      {
-        if (ind_name == individual_find(ydesc, idesc->individual)) return EINA_TRUE;
+        if (ind_name == individual_find(ydesc, idesc->individual)) return 1;
      }
    else
      {
-        Eina_List *itr;
-        Eina_Stringshare *nick;
-        EINA_LIST_FOREACH(idesc->nicknames, itr, nick)
+        List *itr;
+        const char *nick;
+        LIST_FOREACH(idesc->nicknames, itr, nick)
           {
              Item_Desc *ind_nick = individual_find(ydesc, nick);
              ind_nick_found |= (!!ind_nick);
-             if (nick == name || (ind_name && ind_name == ind_nick))
+             if ((name && !strcmp(nick, name)) || (ind_name && ind_name == ind_nick))
                {
-                  return EINA_TRUE;
+                  return 1;
                }
           }
      }
    if (!name) return !ind_nick_found;
-   return EINA_FALSE;
+   return 0;
 }
 
 /*
@@ -302,23 +300,23 @@ _does_idesc_fit_individual(Year_Desc *ydesc, Item_Desc *idesc, Eina_Stringshare 
  */
 float
 idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc,
-      Eina_Strbuf *tooltip, Calc_Filtering filter,
-      Eina_Stringshare *individual, float *expected_ret)
+      char *tooltip, Calc_Filtering filter,
+      const char *individual, float *expected_ret)
 {
-   Eina_List *itr;
+   List *itr;
    if (!idesc) return 0.0;
    Month_Item *mitem = month_item_find(hist, idesc);
    float sum = filter & CALC_INIT ? mitem->init : 0;
    float expected = 0;
    Month_Operation *op;
    if ((filter & CALC_INIT) && tooltip && sum)
-      eina_strbuf_append_printf(tooltip, "Init %.2f\n", sum);
+      sprintf(tooltip + strlen(tooltip), "Init %.2f\n", sum);
    if (filter & CALC_INDIVIDUALS ||
          (!individual && !idesc->individual) ||
          (individual && _does_idesc_fit_individual(ydesc, idesc, individual)))
      {
         if (individual) filter |= CALC_INDIVIDUALS; /* So for children we dont check individuality */
-        EINA_LIST_FOREACH(mitem->ops, itr, op)
+        LIST_FOREACH(mitem->ops, itr, op)
           {
              if (((filter & CALC_NEGATIVE) && op->is_minus) ||
                    ((filter & CALC_POSITIVE) && !op->is_minus))
@@ -327,15 +325,15 @@ idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc,
                   sum += op_sum;
                   if (tooltip)
                     {
-                       eina_strbuf_append_printf(tooltip, "%.2f", op_sum);
-                       if (op->name) eina_strbuf_append_printf(tooltip, ": %s", op->name);
-                       if (op->comment) eina_strbuf_append_printf(tooltip, " (%s)", op->comment);
-                       eina_strbuf_append_printf(tooltip, "\n");
+                       sprintf(tooltip + strlen(tooltip), "%.2f", op_sum);
+                       if (op->name) sprintf(tooltip + strlen(tooltip), ": %s", op->name);
+                       if (op->comment) sprintf(tooltip + strlen(tooltip), " (%s)", op->comment);
+                       sprintf(tooltip + strlen(tooltip), "\n");
                     }
                }
           }
      }
-   EINA_LIST_FOREACH(idesc->subitems, itr, idesc)
+   LIST_FOREACH(idesc->subitems, itr, idesc)
      {
         if ((filter & CALC_INDIVIDUALS) || _does_idesc_fit_individual(ydesc, idesc, individual))
            sum += idesc_sum_calc(ydesc, hist, idesc, NULL, filter, individual, &expected);
@@ -349,7 +347,7 @@ idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc,
         if (mitem->expected > sum) sum = mitem->expected;
      }
    if (expected && tooltip)
-      eina_strbuf_append_printf(tooltip, "Expected: %.2f\n", expected);
+      sprintf(tooltip + strlen(tooltip), "Expected: %.2f\n", expected);
    if (expected_ret) *expected_ret += expected;
    return sum;
 }

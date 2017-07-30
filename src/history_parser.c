@@ -1,49 +1,45 @@
-#include <Eina.h>
-
 #include "common.h"
 
-static Eina_Bool
+static int
 _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc);
 
-static Eina_Bool
+static int
 _is_desc_item_named(Item_Desc *idesc, const char *name)
 {
-   Eina_List *itr;
-   Eina_Stringshare *nick;
-   if (!idesc) return EINA_FALSE;
+   List *itr;
+   const char *nick;
+   if (!idesc) return 0;
    char *lname = strdup(name);
    my_to_lower(lname, -1);
-   Eina_Stringshare *name_shr = eina_stringshare_add(lname);
-   Eina_Bool ret = EINA_TRUE;
-   EINA_LIST_FOREACH(idesc->nicknames, itr, nick)
+   int ret = 1;
+   LIST_FOREACH(idesc->nicknames, itr, nick)
      {
-        if (nick == name_shr) goto end;
+        if (!strcmp(nick, lname)) goto end;
      }
-   ret = EINA_FALSE;
+   ret = 0;
 end:
-   eina_stringshare_del(name_shr);
    free(lname);
    return ret;
 }
 
 static Item_Desc *
-_item_desc_candidate_guess(Eina_List *normal_candidates, Eina_List *other_candidates)
+_item_desc_candidate_guess(List *normal_candidates, List *other_candidates)
 {
-   Eina_List *itr;
+   List *itr;
    Item_Desc *idesc, *found = NULL;
 
    if (normal_candidates)
      {
-        if (eina_list_count(normal_candidates) == 1) found = eina_list_data_get(normal_candidates);
-        EINA_LIST_FOREACH(normal_candidates, itr, idesc)
+        if (list_count(normal_candidates) == 1) found = list_data_get(normal_candidates);
+        LIST_FOREACH(normal_candidates, itr, idesc)
           {
              if (found) continue;
              if (!idesc->parent || !idesc->parent->parent) found = idesc;
           }
      }
 
-   if (!found && eina_list_count(other_candidates) == 1) found = eina_list_data_get(other_candidates);
-   EINA_LIST_FOREACH(other_candidates, itr, idesc)
+   if (!found && list_count(other_candidates) == 1) found = list_data_get(other_candidates);
+   LIST_FOREACH(other_candidates, itr, idesc)
      {
         if (found) continue;
         if (!idesc->parent || !idesc->parent->parent) found = idesc;
@@ -53,10 +49,10 @@ _item_desc_candidate_guess(Eina_List *normal_candidates, Eina_List *other_candid
 
 static void
 _list_candidates(Year_Desc *ydesc, Item_Desc *cur_desc,
-      Eina_Stringshare *operation, Eina_Stringshare *category,
-      Eina_List **normal_list, Eina_List **other_list)
+      const char *operation, const char *category,
+      List **normal_list, List **other_list)
 {
-   Eina_List *itr;
+   List *itr;
    Item_Desc *sub_desc;
    if (!cur_desc) return;
    if (!cur_desc->as_other && !cur_desc->as_saving)
@@ -67,25 +63,25 @@ _list_candidates(Year_Desc *ydesc, Item_Desc *cur_desc,
                {
                   if (!category
                         || does_idesc_fit_name(ydesc, cur_desc->parent, category)
-                        || category == cur_desc->individual)
-                     *normal_list = eina_list_append(*normal_list, cur_desc);
+                        || (cur_desc->individual && !strcmp(category, cur_desc->individual)))
+                     *normal_list = list_append(*normal_list, cur_desc);
                }
              else
                {
                   /* e.g Conversion @Bank 300 */
                   if (category && !cur_desc->subitems && does_idesc_fit_name(ydesc, cur_desc, category))
-                     *normal_list = eina_list_append(*normal_list, cur_desc);
+                     *normal_list = list_append(*normal_list, cur_desc);
                }
           }
         else
           {
              /* e.g SV.init 40 */
              if (category && does_idesc_fit_name(ydesc, cur_desc, category))
-                *normal_list = eina_list_append(*normal_list, cur_desc);
+                *normal_list = list_append(*normal_list, cur_desc);
           }
 
 
-        EINA_LIST_FOREACH(cur_desc->subitems, itr, sub_desc)
+        LIST_FOREACH(cur_desc->subitems, itr, sub_desc)
           {
              _list_candidates(ydesc, sub_desc,
                    operation, category,
@@ -97,13 +93,13 @@ _list_candidates(Year_Desc *ydesc, Item_Desc *cur_desc,
         if (!category
               || does_idesc_fit_name(ydesc, cur_desc->parent, category)
               || does_idesc_fit_name(ydesc, cur_desc, category)
-              || category == cur_desc->individual)
-           *other_list = eina_list_append(*other_list, cur_desc);
+              || (cur_desc->individual && !strcmp(category, cur_desc->individual)))
+           *other_list = list_append(*other_list, cur_desc);
      }
    else /* Savings */
      {
         if (category && does_idesc_fit_name(ydesc, cur_desc, category))
-           *other_list = eina_list_append(*other_list, cur_desc);
+           *other_list = list_append(*other_list, cur_desc);
      }
 }
 
@@ -111,27 +107,25 @@ static Item_Desc *
 _find_best_idesc(Year_Desc *ydesc, const char *operation, const char *category)
 {
    Item_Desc *idesc = NULL;
-   Eina_List *normal_candidates = NULL, *other_candidates = NULL;
+   List *normal_candidates = NULL, *other_candidates = NULL;
 
    char *loperation = operation?strdup(operation):NULL;
    char *lcategory = category?strdup(category):NULL;
    my_to_lower(loperation, -1);
    my_to_lower(lcategory, -1);
-   Eina_Stringshare *operation_shr = eina_stringshare_add(loperation);
-   Eina_Stringshare *category_shr = eina_stringshare_add(lcategory);
 
-   _list_candidates(ydesc, ydesc->debits, operation_shr, category_shr, &normal_candidates, &other_candidates);
-   _list_candidates(ydesc, ydesc->credits, operation_shr, category_shr, &normal_candidates, &other_candidates);
-   _list_candidates(ydesc, ydesc->savings, operation_shr, category_shr, &normal_candidates, &other_candidates);
+   _list_candidates(ydesc, ydesc->debits, loperation, lcategory, &normal_candidates, &other_candidates);
+   _list_candidates(ydesc, ydesc->credits, loperation, lcategory, &normal_candidates, &other_candidates);
+   _list_candidates(ydesc, ydesc->savings, loperation, lcategory, &normal_candidates, &other_candidates);
 #if 1
-   Eina_List *itr;
-   EINA_LIST_FOREACH(normal_candidates, itr, idesc)
+   List *itr;
+   LIST_FOREACH(normal_candidates, itr, idesc)
      {
         printf("Normal: %s category %s individual %s\n", idesc->name,
               idesc->parent?idesc->parent->name:"(none)",
               idesc->individual?idesc->individual:"(none)");
      }
-   EINA_LIST_FOREACH(other_candidates, itr, idesc)
+   LIST_FOREACH(other_candidates, itr, idesc)
      {
         printf("Other: %s category %s individual %s\n", idesc->name,
               idesc->parent?idesc->parent->name:"(none)",
@@ -150,14 +144,12 @@ _find_best_idesc(Year_Desc *ydesc, const char *operation, const char *category)
    printf("\n");
 #endif
 
-   eina_stringshare_del(category_shr);
-   eina_stringshare_del(operation_shr);
    free(lcategory);
    free(loperation);
    return idesc;
 }
 
-static Eina_Bool
+static int
 _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
 {
    /*
@@ -169,12 +161,12 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    printf("Chunk: %s\n", chunk);
    char *categ = NULL, *comment;
    char *categ_setting = NULL;
-   Eina_Bool is_minus = EINA_FALSE;
+   int is_minus = 0;
    trailing_remove(chunk);
    float sum = 0.0;
    if (!strcmp(chunk, "@simulation"))
      {
-        hist->simulation = EINA_TRUE;
+        hist->simulation = 1;
         goto ok;
      }
    if (!strncmp(chunk, "@import", 7))
@@ -183,7 +175,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
         chunk += 8;
         sprintf(history_file, "%s/%s", ydesc->files_dir, chunk);
         char *buffer = file_get_as_string(history_file);
-        if (!_hist_parse(buffer, hist, ydesc)) return EINA_FALSE;
+        if (!_hist_parse(buffer, hist, ydesc)) return 0;
         goto ok;
      }
    char *ptr = strrchr(chunk, ' '); /* Look for sum */
@@ -216,7 +208,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
           }
 
         if (*ptr == '.') categ_setting = ptr + 1;
-        else if (*ptr == '-') is_minus = EINA_TRUE;
+        else if (*ptr == '-') is_minus = 1;
         *ptr = '\0';
      }
 
@@ -225,7 +217,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    if (*chunk && categ_setting)
      {
         fprintf(stderr, "You cannot set a category while defining an operation\n");
-        return EINA_FALSE;
+        return 0;
      }
    if (!*chunk) chunk = NULL;
 
@@ -233,7 +225,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    if (!idesc)
      {
         fprintf(stderr, "Candidate not found for %s\n", chunk?chunk:categ);
-        return EINA_FALSE;
+        return 0;
      }
 
    if (idesc->as_trash) goto ok;
@@ -274,17 +266,17 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    Month_Operation *op = calloc(1, sizeof(*op));
    op->v = sum;
    if (!_is_desc_item_named(idesc, chunk))
-      op->name = eina_stringshare_add(chunk);
-   op->comment = comment?eina_stringshare_add(comment):NULL;
+      op->name = strdup(chunk);
+   op->comment = comment?strdup(comment):NULL;
    op->is_minus = is_minus;
-   mitem->ops = eina_list_append(mitem->ops, op);
+   mitem->ops = list_append(mitem->ops, op);
 
 ok:
    *val = sum;
-   return EINA_TRUE;
+   return 1;
 }
 
-static Eina_Bool
+static int
 _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
 {
    /*
@@ -293,9 +285,8 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
     * else extract chunk until \0 or \n
     * for each chunk
     */
-   Eina_Bool success = EINA_FALSE;
-   Eina_Bool equal_required = EINA_FALSE;
-   Eina_Bool parenthesis_required = EINA_FALSE;
+   int equal_required = 0;
+   int parenthesis_required = 0;
    float line_sum = 0.0;
    Lexer l;
    l.buffer = buffer;
@@ -305,7 +296,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
      {
         if (is_next_token(&l, "("))
           {
-             parenthesis_required = EINA_TRUE;
+             parenthesis_required = 1;
              is_next_token(&l, "\n");
           }
         else if (is_next_token(&l, ")"))
@@ -313,7 +304,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
              if (!parenthesis_required)
                {
                   ERROR_PRINT(&l, "Unexpected parenthesis");
-                  return EINA_FALSE;
+                  return 0;
                }
 
              float given_sum = next_number(&l);
@@ -321,15 +312,15 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
                {
                   ERROR_PRINT(&l, "Incorrect sum");
                   fprintf(stderr, "Given %.2f Expected %.2f\n", given_sum, line_sum);
-                  return EINA_FALSE;
+                  return 0;
                }
-             parenthesis_required = EINA_FALSE;
+             parenthesis_required = 0;
              line_sum = 0.0;
              is_next_token(&l, "\n");
           }
         else
           {
-             char *chunk = chunk_get(&l, EINA_FALSE, '\n', '&', '=', '\0');
+             char *chunk = chunk_get(&l, 0, '\n', '&', '=', '\0');
              if (chunk)
                {
                   float val = 0.0;
@@ -337,14 +328,14 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
                     {
                        ERROR_PRINT(&l, "Chunk error");
                        fprintf(stderr, "%s\n", chunk);
-                       return EINA_FALSE;
+                       return 0;
                     }
                   line_sum += val;
                }
              else goto end;
              if (is_next_token(&l, "&"))
                {
-                  equal_required = EINA_TRUE;
+                  equal_required = 1;
                }
              else if (is_next_token(&l, "="))
                {
@@ -353,9 +344,9 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
                     {
                        ERROR_PRINT(&l, "Incorrect sum");
                        fprintf(stderr, "Given %.2f Expected %.2f\n", given_sum, line_sum);
-                       return EINA_FALSE;
+                       return 0;
                     }
-                  equal_required = EINA_FALSE;
+                  equal_required = 0;
                   line_sum = 0.0;
                }
              else
@@ -363,7 +354,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
                   if (equal_required)
                     {
                        ERROR_PRINT(&l, "'=' required");
-                       return EINA_FALSE;
+                       return 0;
                     }
                   is_next_token(&l, "\n");
                   if (!parenthesis_required) line_sum = 0.0;
@@ -373,19 +364,11 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
    while (1);
 
 end:
-   success = EINA_TRUE;
-error:
-   if (!success)
-     {
-        free(hist);
-        // FIXME intern frees
-        return EINA_FALSE;
-     }
-   ydesc->months = eina_list_append(ydesc->months, hist);
-   return EINA_TRUE;
+   ydesc->months = list_append(ydesc->months, hist);
+   return 1;
 }
 
-Eina_Bool
+int
 history_parse(const char *buffer, int month, Year_Desc *ydesc)
 {
    Month_History *hist = calloc(1, sizeof(*hist));
