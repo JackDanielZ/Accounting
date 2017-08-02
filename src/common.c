@@ -122,6 +122,7 @@ next_number(Lexer *l)
 {
    ws_skip(l);
    const char *str = l->current;
+   if (*str && *str == '-') str++;
    while (*str && ((*str >= '0' && *str <= '9') || *str == '.')) str++;
    if (str == l->current) return -1;
    int size = str - l->current;
