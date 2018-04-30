@@ -117,7 +117,7 @@ next_word(Lexer *l, const char *special, int special_allowed)
    return word;
 }
 
-float
+double
 next_number(Lexer *l)
 {
    ws_skip(l);
@@ -299,16 +299,16 @@ _does_idesc_fit_individual(Year_Desc *ydesc, Item_Desc *idesc, const char *name)
  * only specific items of individual.
  *
  */
-float
+double
 idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc,
       char *tooltip, Calc_Filtering filter,
-      const char *individual, float *expected_ret)
+      const char *individual, double *expected_ret)
 {
    List *itr;
    if (!idesc) return 0.0;
    Month_Item *mitem = month_item_find(hist, idesc);
-   float sum = filter & CALC_INIT ? mitem->init : 0;
-   float expected = 0;
+   double sum = filter & CALC_INIT ? mitem->init : 0;
+   double expected = 0;
    Month_Operation *op;
    if ((filter & CALC_INIT) && tooltip && sum)
       sprintf(tooltip + strlen(tooltip), "Init %.2f\n", sum);
@@ -322,7 +322,7 @@ idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc,
              if (((filter & CALC_NEGATIVE) && op->is_minus) ||
                    ((filter & CALC_POSITIVE) && !op->is_minus))
                {
-                  float op_sum = (op->v * (op->is_minus ? -1 : 1));
+                  double op_sum = (op->v * (op->is_minus ? -1 : 1));
                   sum += op_sum;
                   if (tooltip)
                     {

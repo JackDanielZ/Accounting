@@ -30,7 +30,7 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
      {
         Month_History *hist = month_hist_get(ydesc, m);
         Month_Item *mitem = month_item_find(hist, idesc);
-        float sum = 0.0, expected = 0.0;
+        double sum = 0.0, expected = 0.0;
         char *tooltip = malloc(10000);
         *tooltip = '\0';
         if (hist) sum = idesc_sum_calc(ydesc, hist, idesc, tooltip, CALC_BASIC | CALC_INDIVIDUALS, NULL, &expected);
@@ -69,7 +69,7 @@ html_generate(Year_Desc *ydesc, const char *output)
    FILE *fp = fopen(output, "w");
    int m;
    char *buffer = file_get_as_string(PACKAGE_DATA_DIR"header_html");
-   float last_rem = 0.0;
+   double last_rem = 0.0;
    List *itr;
    Item_Desc *idesc;
 
@@ -92,8 +92,8 @@ html_generate(Year_Desc *ydesc, const char *output)
    for (m = 0, last_rem = 0.0; m < 12; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);
-        float credits, sum = 0.0, expected_debits = 0.0;
-        float all_debits, all_savings;
+        double credits, sum = 0.0, expected_debits = 0.0;
+        double all_debits, all_savings;
         int italic = hist && hist->simulation;
         if (hist)
           {
@@ -121,19 +121,19 @@ html_generate(Year_Desc *ydesc, const char *output)
         for (m = 0, last_rem = 0.0; m < 12; m++)
           {
              Month_History *hist = month_hist_get(ydesc, m);
-             float sum = 0.0;
+             double sum = 0.0;
              int italic = hist && hist->simulation;
              if (hist)
                {
-                  float own_credits = idesc_sum_calc(ydesc, hist, ydesc->credits,
+                  double own_credits = idesc_sum_calc(ydesc, hist, ydesc->credits,
                         NULL, CALC_BASIC, idesc->name, NULL);
-                  float common_debits = idesc_sum_calc(ydesc, hist, ydesc->debits,
+                  double common_debits = idesc_sum_calc(ydesc, hist, ydesc->debits,
                         NULL, CALC_BASIC, NULL, NULL);
-                  float common_savings = idesc_sum_calc(ydesc, hist, ydesc->savings,
+                  double common_savings = idesc_sum_calc(ydesc, hist, ydesc->savings,
                         NULL, CALC_POSITIVE, NULL, NULL);
-                  float own_debits = idesc_sum_calc(ydesc, hist, ydesc->debits,
+                  double own_debits = idesc_sum_calc(ydesc, hist, ydesc->debits,
                         NULL, CALC_BASIC, idesc->name, NULL);
-                  float own_savings = idesc_sum_calc(ydesc, hist, ydesc->savings,
+                  double own_savings = idesc_sum_calc(ydesc, hist, ydesc->savings,
                         NULL, CALC_POSITIVE, idesc->name, NULL);
                   if (ydesc->inherit_remainings) sum = last_rem;
                   sum += own_credits - (common_debits / 2) - (common_savings / 2) -

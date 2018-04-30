@@ -52,7 +52,7 @@ typedef struct
 {
    const char *name; /* Only for other */
    const char *comment;
-   float v;
+   double v;
    int is_minus : 1;
 } Month_Operation;
 
@@ -60,9 +60,9 @@ typedef struct
 {
    Item_Desc *desc;
    List *ops;
-   float max;
-   float expected;
-   float init;
+   double max;
+   double expected;
+   double init;
 } Month_Item;
 
 typedef struct
@@ -90,7 +90,7 @@ int is_next_token(Lexer *l, const char *token);
 
 char *next_word(Lexer *l, const char *special, int special_allowed);
 
-float next_number(Lexer *l);
+double next_number(Lexer *l);
 
 char *chunk_get(Lexer *l, int include, char token, ...);
 
@@ -112,8 +112,8 @@ individual_find(Year_Desc *ydesc, const char *name);
 int
 does_idesc_fit_name(Year_Desc *ydesc, Item_Desc *idesc, const char *name);
 
-float
-idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc, char *tooltip, Calc_Filtering filter, const char *individual, float *expected);
+double
+idesc_sum_calc(Year_Desc *ydesc, Month_History *hist, Item_Desc *idesc, char *tooltip, Calc_Filtering filter, const char *individual, double *expected);
 
 #define ERROR_PRINT(l, s) \
 { \

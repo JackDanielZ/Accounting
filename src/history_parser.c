@@ -150,10 +150,10 @@ _find_best_idesc(Year_Desc *ydesc, const char *operation, const char *category)
 }
 
 static int
-_chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
+_chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, double *val)
 {
    /*
-    * reverse look up float number
+    * reverse look up double number
     * remains the operation name
     * reverse extract destination (should be at the end) @... if exists
     * stringshare destination and operation and look into items names
@@ -163,7 +163,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, float *val)
    char *categ_setting = NULL;
    int is_minus = 0;
    trailing_remove(chunk);
-   float sum = 0.0;
+   double sum = 0.0;
    if (!strcmp(chunk, "@simulation"))
      {
         hist->simulation = 1;
@@ -287,7 +287,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
     */
    int equal_required = 0;
    int parenthesis_required = 0;
-   float line_sum = 0.0;
+   double line_sum = 0.0;
    Lexer l;
    l.buffer = buffer;
    lexer_reset(&l);
@@ -307,7 +307,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
                   return 0;
                }
 
-             float given_sum = next_number(&l);
+             double given_sum = next_number(&l);
              if ((abs)(given_sum - line_sum) > 0.01)
                {
                   ERROR_PRINT(&l, "Incorrect sum");
@@ -323,7 +323,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
              char *chunk = chunk_get(&l, 0, '\n', '&', '=', '\0');
              if (chunk)
                {
-                  float val = 0.0;
+                  double val = 0.0;
                   if (!_chunk_handle(chunk, ydesc, hist, &val))
                     {
                        ERROR_PRINT(&l, "Chunk error");
@@ -339,7 +339,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
                }
              else if (is_next_token(&l, "="))
                {
-                  float given_sum = next_number(&l);
+                  double given_sum = next_number(&l);
                   if ((abs)(given_sum - line_sum) > 0.01)
                     {
                        ERROR_PRINT(&l, "Incorrect sum");
