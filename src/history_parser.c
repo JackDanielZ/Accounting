@@ -1,7 +1,5 @@
 #include "common.h"
 
-#define ABS(x) (x) >= 0 ? (x) : (x) * (-1)
-
 static int
 _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc);
 
@@ -279,6 +277,13 @@ ok:
 }
 
 static int
+_is_equal(double a, double b)
+{
+   return (int)((a - b) * 1000) == 0;
+   return ((int)(a * 100) == (int)(b * 100));
+}
+
+static int
 _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
 {
    /*
@@ -310,7 +315,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
                }
 
              double given_sum = next_number(&l);
-             if ((ABS(given_sum - line_sum)) > 0.01)
+             if (!_is_equal(given_sum, line_sum))
                {
                   ERROR_PRINT(&l, "Incorrect sum");
                   fprintf(stderr, "Given %.2f Expected %.2f\n", given_sum, line_sum);
@@ -342,7 +347,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
              else if (is_next_token(&l, "="))
                {
                   double given_sum = next_number(&l);
-                  if ((abs)(given_sum - line_sum) > 0.01)
+                  if (!_is_equal(given_sum, line_sum))
                     {
                        ERROR_PRINT(&l, "Incorrect sum");
                        fprintf(stderr, "Given %.2f Expected %.2f\n", given_sum, line_sum);
