@@ -1,7 +1,7 @@
 #include "common.h"
 
 static int
-_hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc);
+_hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc, int append);
 
 static int
 _is_desc_item_named(Item_Desc *idesc, const char *name)
@@ -175,7 +175,7 @@ _chunk_handle(char *chunk, Year_Desc *ydesc, Month_History *hist, double *val)
         chunk += 8;
         sprintf(history_file, "%s/%s", ydesc->files_dir, chunk);
         char *buffer = file_get_as_string(history_file);
-        if (!_hist_parse(buffer, hist, ydesc)) return 0;
+        if (!_hist_parse(buffer, hist, ydesc, 0)) return 0;
         goto ok;
      }
    char *ptr = strrchr(chunk, ' '); /* Look for sum */
@@ -284,7 +284,7 @@ _is_equal(double a, double b)
 }
 
 static int
-_hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
+_hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc, int append)
 {
    /*
     * if token == (
@@ -371,7 +371,7 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc)
    while (1);
 
 end:
-   ydesc->months = list_append(ydesc->months, hist);
+   if (append) ydesc->months = list_append(ydesc->months, hist);
    return 1;
 }
 
@@ -380,5 +380,5 @@ history_parse(const char *buffer, int month, Year_Desc *ydesc)
 {
    Month_History *hist = calloc(1, sizeof(*hist));
    hist->month = month;
-   return _hist_parse(buffer, hist, ydesc);
+   return _hist_parse(buffer, hist, ydesc, 1);
 }
