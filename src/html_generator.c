@@ -9,7 +9,8 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
 {
    List *itr;
    if (!idesc) return;
-   int m, nb_children = list_count(idesc->subitems);
+   unsigned int m, nb_children = list_count(idesc->subitems);
+   unsigned int nb_months = year_months_get(ydesc);
    if (idesc->as_trash) return;
    fprintf(fp, "   <tr class=\"d%d\" expanded=0 level=%d%s>\n",
          _row_number++ % 2,
@@ -26,7 +27,7 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
      }
    fprintf(fp, "</th>\n");
 
-   for (m = 0; m < 12; m++)
+   for (m = 0; m < nb_months; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);
         Month_Item *mitem = month_item_find(hist, idesc);
@@ -66,19 +67,20 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
 int
 html_generate(Year_Desc *ydesc, const char *output)
 {
-   FILE *fp = fopen(output, "w");
-   int m;
-   char *buffer = file_get_as_string(PACKAGE_DATA_DIR"header_html");
-   double last_rem = 0.0;
+   unsigned int m;
    List *itr;
    Item_Desc *idesc;
+   FILE *fp = fopen(output, "w");
+   char *buffer = file_get_as_string(PACKAGE_DATA_DIR"header_html");
+   double last_rem = 0.0;
+   unsigned int nb_months = year_months_get(ydesc);
 
    fprintf(fp, buffer);
    free(buffer);
 
    _row_number = 0;
    fprintf(fp, "   <tr class=\"d%d\">\n      <th></th><th></th>\n", _row_number++ % 2);
-   for (m = 0; m < 12; m++) fprintf(fp, "      <th>%s</th>", _months[m]);
+   for (m = 0; m < nb_months; m++) fprintf(fp, "      <th>%s</th>", _months[m % 12]);
    fprintf(fp, "   </tr>\n");
 
    _item_generate(fp, ydesc, ydesc->debits, 0);
@@ -89,7 +91,7 @@ html_generate(Year_Desc *ydesc, const char *output)
    if (ydesc->individuals)
       fprintf(fp, "      <button onclick=\"toggleRow(this);\">+</button>");
    fprintf(fp, "</th><th>Remaining</th>\n");
-   for (m = 0, last_rem = 0.0; m < 12; m++)
+   for (m = 0, last_rem = 0.0; m < nb_months; m++)
      {
         Month_History *hist = month_hist_get(ydesc, m);
         double credits, sum = 0.0, expected_debits = 0.0;
@@ -118,7 +120,7 @@ html_generate(Year_Desc *ydesc, const char *output)
      {
         fprintf(fp, "   <tr class=\"d%d\" expanded=0 level=0>\n      <th></th><th>%s</th>\n",
               _row_number++ % 2, idesc->name);
-        for (m = 0, last_rem = 0.0; m < 12; m++)
+        for (m = 0, last_rem = 0.0; m < nb_months; m++)
           {
              Month_History *hist = month_hist_get(ydesc, m);
              double sum = 0.0;

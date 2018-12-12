@@ -13,7 +13,7 @@ main(int argc, char **argv)
 {
    char history_file[256];
    char *buffer;
-   int m, opt, gen_what = GEN_HTML, ret = 0;
+   int m = 0, opt, gen_what = GEN_HTML, ret = 0;
    int help = 0;
 
    struct option opts[] = {
@@ -56,7 +56,7 @@ main(int argc, char **argv)
    free(buffer);
 
    ydesc->files_dir = dirname(desc_file);
-   for (m = 0; m < 12; m++)
+   while (1)
      {
         sprintf(history_file, "%s/History_%d_%.2d.txt", ydesc->files_dir, ydesc->year, m + 1);
         buffer = file_get_as_string(history_file);
@@ -70,6 +70,8 @@ main(int argc, char **argv)
                }
              free(buffer);
           }
+        else break;
+        m++;
      }
 
    if (gen_what == GEN_HTML) ret = html_generate(ydesc, "toto.html");

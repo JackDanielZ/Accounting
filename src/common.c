@@ -225,6 +225,12 @@ month_hist_get(Year_Desc *ydesc, int month)
    return hist;
 }
 
+unsigned int
+year_months_get(Year_Desc *ydesc)
+{
+   return list_count(ydesc->months);
+}
+
 Item_Desc *
 individual_find(Year_Desc *ydesc, const char *name)
 {

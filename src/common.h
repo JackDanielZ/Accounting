@@ -106,6 +106,9 @@ month_item_find(Month_History *hist, Item_Desc *idesc);
 Month_History *
 month_hist_get(Year_Desc *ydesc, int month);
 
+unsigned int
+year_months_get(Year_Desc *ydesc);
+
 Item_Desc *
 individual_find(Year_Desc *ydesc, const char *name);
 
