@@ -327,10 +327,15 @@ _hist_parse(const char *buffer, Month_History *hist, Year_Desc *ydesc, int appen
           }
         else
           {
-             char *chunk = chunk_get(&l, 0, '\n', '&', '=', '\0');
+             char *chunk = chunk_get(&l, 0, "\n", "&", "=", "&&", NULL);
              if (chunk)
                {
                   double val = 0.0;
+                  if (is_next_token(&l, "&&"))
+                    {
+                       ERROR_PRINT(&l, "Forbidden &&. Did you mean &");
+                       return 0;
+                    }
                   if (!_chunk_handle(chunk, ydesc, hist, &val))
                     {
                        ERROR_PRINT(&l, "Chunk error");

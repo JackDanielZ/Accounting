@@ -135,19 +135,22 @@ next_number(Lexer *l)
 }
 
 char *
-chunk_get(Lexer *l, int include, char token, ...)
+chunk_get(Lexer *l, int include, const char *token, ...)
 {
    va_list list;
    ws_skip(l);
    va_start(list, token);
    const char *begin = l->current;
    char *min_ptoken = NULL, min_token = '\0';
-   min_ptoken = strchr(l->current, token);
+   min_ptoken = strstr(l->current, token);
    do
      {
-        token = va_arg(list, int);
-        char *ptr = strchr(l->current, token);
-        if (ptr && (!min_ptoken || min_ptoken > ptr)) min_ptoken = ptr;
+        token = va_arg(list, const char *);
+        if (token)
+          {
+             char *ptr = strstr(l->current, token);
+             if (ptr && (!min_ptoken || min_ptoken > ptr)) min_ptoken = ptr;
+          }
      }
    while (token);
    if (min_ptoken)

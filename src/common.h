@@ -92,7 +92,7 @@ char *next_word(Lexer *l, const char *special, int special_allowed);
 
 double next_number(Lexer *l);
 
-char *chunk_get(Lexer *l, int include, char token, ...);
+char *chunk_get(Lexer *l, int include, const char *token, ...);
 
 void error_print(Lexer *l, const char *error_str);
 
