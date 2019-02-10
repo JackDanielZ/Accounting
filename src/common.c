@@ -22,7 +22,7 @@ file_get_as_string(const char *filename)
 
    fseek(fp, 0, SEEK_END);
    file_size = ftell(fp);
-   if (file_size <= 0)
+   if (file_size < 0)
      {
         fclose(fp);
         if (file_size < 0) ERR("Can not ftell file: \"%s\".", filename);
@@ -36,12 +36,15 @@ file_get_as_string(const char *filename)
         ERR("Calloc failed");
         return NULL;
      }
-   int res = fread(file_data, 1, file_size, fp);
-   if (!res)
+   if (file_size)
      {
-        free(file_data);
-        file_data = NULL;
-        if (!feof(fp)) ERR("fread failed");
+        int res = fread(file_data, 1, file_size, fp);
+        if (!res)
+          {
+             free(file_data);
+             file_data = NULL;
+             if (!feof(fp)) ERR("fread failed");
+          }
      }
    fclose(fp);
    return file_data;
