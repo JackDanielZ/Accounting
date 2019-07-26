@@ -12,6 +12,15 @@ _is_desc_item_named(Item_Desc *idesc, const char *name)
    char *lname = strdup(name);
    my_to_lower(lname, -1);
    int ret = 1;
+   /*
+    * 2 nicknames = name and short alias -> no need to add name
+    * more = name and categories we want to notify in the report -> need to add name
+    */
+   if (list_count(idesc->nicknames) > 2)
+     {
+        ret = 0;
+        goto end;
+     }
    LIST_FOREACH(idesc->nicknames, itr, nick)
      {
         if (!strcmp(nick, lname)) goto end;
