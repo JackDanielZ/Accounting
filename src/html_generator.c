@@ -57,6 +57,7 @@ _item_generate(FILE *fp, Year_Desc *ydesc, Item_Desc *idesc, int level)
           }
         fprintf(fp, "</td>\n");
      }
+   fprintf(fp, "      </th><th style=\"text-indent:%dpx\">%s", level*20, idesc->name);
    fprintf(fp, "   </tr>\n");
    LIST_FOREACH(idesc->subitems, itr, idesc)
      {
