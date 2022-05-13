@@ -72,7 +72,7 @@ html_generate(Year_Desc *ydesc, const char *output)
    List *itr;
    Item_Desc *idesc;
    FILE *fp = fopen(output, "w");
-   char *buffer = file_get_as_string(PACKAGE_DATA_DIR"header_html");
+   char *buffer = file_get_as_string(PACKAGE_DATA_DIR"/header_html");
    double last_rem = 0.0;
    unsigned int nb_months = year_months_get(ydesc);
 
